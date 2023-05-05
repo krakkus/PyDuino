@@ -66,3 +66,11 @@ The PyDuino.FindAll() function returns a dictonary of PyDuino objects. You can s
     INPUT_PULLUP = 2
     OUTPUT = 1
     INPUT = 0
+
+# Serial
+
+For debugging, you can connect to serial or telnet to the device. Then you can send commands directly and see the response.
+
+    digitalWrite,13,1
+
+Set pin 13 to high for example.
