@@ -37,7 +37,7 @@ class PyDuino:
         subnet = ip[:ip.rfind('.')+1]
 
         # Create list of IP addresses in subnet
-        candidates = [subnet + str(i) for i in range(1, 16)]
+        candidates = [subnet + str(i) for i in range(1, 255)]
 
         # Get list of available COM ports and add them to candidates
         ports = [port.device for port in serial.tools.list_ports.comports()]
