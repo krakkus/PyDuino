@@ -1,28 +1,19 @@
-import time
-import random
 from pyduino import *
 
 
-def main():
-    devices = PyDuino.FindAll()
-    for d in devices:
-        print(d)
-        d.pinMode(14, INPUT)
+devices = PyDuino.FindAll()
 
-    v = 1
-    while True:
-        if v == 1:
-            v = 0
-        else:
-            v = 1
+for k, v in devices.items():
+    print(k, v.address)
 
-        for d in devices:
-            i = d.digitalRead(14)
-            print(i)
+devices['ESP8266_1'].pinMode(0, INPUT)
+devices['NANO_1'].pinMode(9, OUTPUT)
 
-        time.sleep(1)
+while True:
+    pot = devices['ESP8266_1'].analogRead(0)
 
+    led = int(pot * 255 / 1023)
 
+    devices['NANO_1'].analogWrite(9, led)
 
-if __name__ == '__main__':
-    main()
+    print(f'\rPot: {pot}, LED {led}   ', end='')

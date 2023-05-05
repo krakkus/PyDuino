@@ -7,7 +7,7 @@ import queue
 
 TIMEOUT = 1
 
-LED_BUILTIN = 13
+#LED_BUILTIN = 13
 
 HIGH = 1
 LOW = 0
@@ -17,12 +17,12 @@ INPUT_PULLUP = 2
 OUTPUT = 1
 INPUT = 0
 
-A0 = 14
-A1 = 15
-A2 = 16
-A3 = 17
-A4 = 18
-A5 = 19
+# A0 = 14
+# A1 = 15
+# A2 = 16
+# A3 = 17
+# A4 = 18
+# A5 = 19
 
 class PyDuino:
     def __init__(self, address, conn, name):
@@ -55,7 +55,10 @@ class PyDuino:
             thread.join()
 
         # Convert the queue to a list and return it
-        return list(available.queue)
+        assoc = {}
+        for d in available.queue:
+            assoc[d.name] = d
+        return assoc
 
     @staticmethod
     def _validate(candidate, available):
