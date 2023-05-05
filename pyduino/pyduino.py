@@ -7,6 +7,23 @@ import queue
 
 TIMEOUT = 1
 
+LED_BUILTIN = 13
+
+HIGH = 1
+LOW = 0
+
+INPUT_PULLDOWN = 4
+INPUT_PULLUP = 2
+OUTPUT = 1
+INPUT = 0
+
+A0 = 14
+A1 = 15
+A2 = 16
+A3 = 17
+A4 = 18
+A5 = 19
+
 class PyDuino:
     def __init__(self, address, conn, name):
         self.address = address
@@ -76,6 +93,8 @@ class PyDuino:
         bytestring = bytestring.encode("utf-8")
 
         if isinstance(self.conn, serial.Serial):
+            self.conn.flushInput()
+
             self.conn.write(bytestring)
 
             data = b''
@@ -89,6 +108,16 @@ class PyDuino:
             return data
 
         if isinstance(self.conn, socket.socket):
+            self.conn.setblocking(False)
+            try:
+                while True:
+                    data = self.conn.recv(1)
+                    if not data:
+                        break
+            except BlockingIOError:
+                pass
+            self.conn.setblocking(True)
+
             self.conn.send(bytestring)
 
             data = b''
@@ -101,6 +130,20 @@ class PyDuino:
             data = data.strip().decode()
             return data
 
+    def pinMode(self, pin, value):
+        r = self._sendAndReceive(f'pinMode,{pin},{value}')
+
     def digitalWrite(self, pin, value):
         r = self._sendAndReceive(f'digitalWrite,{pin},{value}')
+
+    def digitalRead(self, pin):
+        r = self._sendAndReceive(f'digitalRead,{pin}')
+        return int(r)
+
+    def analogWrite(self, pin, value):
+        r = self._sendAndReceive(f'analogWrite,{pin},{value}')
+
+    def analogRead(self, pin):
+        r = self._sendAndReceive(f'analogRead,{pin}')
+        return int(r)
 

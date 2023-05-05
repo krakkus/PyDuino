@@ -49,6 +49,18 @@ void processMessage(char* message_in, char* message_out) {
       strcpy(message_out, "Ok,");
       strcat(message_out, deviceName);
     }
+        
+    if (strcmp(token, "pinMode") == 0) {
+      token = strtok(nullptr, ",\n");
+      int pin = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int value = atoi(token);
+
+      pinMode(pin, value);
+      
+      strcpy(message_out, "Ok");
+    }
     
     if (strcmp(token, "digitalWrite") == 0) {
       token = strtok(nullptr, ",\n");
@@ -57,10 +69,39 @@ void processMessage(char* message_in, char* message_out) {
       token = strtok(nullptr, ",\n");
       int value = atoi(token);
 
-      pinMode(pin, OUTPUT); // Set D7 pin as an output
-      digitalWrite(pin, value); // Turn D7 pin high
+      digitalWrite(pin, value); 
       
       strcpy(message_out, "Ok");
+    }    
+
+    if (strcmp(token, "digitalRead") == 0) {
+      token = strtok(nullptr, ",\n");
+      int pin = atoi(token);
+
+      int value = digitalRead(pin); 
+
+      itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
+    }
+        
+    if (strcmp(token, "analogWrite") == 0) {
+      token = strtok(nullptr, ",\n");
+      int pin = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int value = atoi(token);
+
+      analogWrite(pin, value); 
+      
+      strcpy(message_out, "Ok");
+    }    
+
+    if (strcmp(token, "analogRead") == 0) {
+      token = strtok(nullptr, ",\n");
+      int pin = atoi(token);
+
+      int value = analogRead(pin); 
+
+      itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
     }
   }
 }

@@ -1,25 +1,24 @@
 import time
-from pyduino import PyDuino
+import random
+from pyduino import *
 
 
 def main():
     devices = PyDuino.FindAll()
     for d in devices:
-        print(d.address, d.name)
-
-    print()
+        print(d)
+        d.pinMode(14, INPUT)
 
     v = 1
     while True:
         if v == 1:
             v = 0
-            print('OFF ', end='')
         else:
             v = 1
-            print('ON ', end='')
 
         for d in devices:
-            d.digitalWrite(13, v)
+            i = d.digitalRead(14)
+            print(i)
 
         time.sleep(1)
 
