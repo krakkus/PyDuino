@@ -1,3 +1,7 @@
+#include <Servo.h>
+
+Servo* servos[32] = {NULL};
+
 const char* deviceName = "NANO_1"; // Configure the Arduino name here
 
 void receiveMessage(char* message) {
@@ -102,6 +106,23 @@ void processMessage(char* message_in, char* message_out) {
       int value = analogRead(pin); 
 
       itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
+    }
+    
+    if (strcmp(token, "servoWrite") == 0) {
+      token = strtok(nullptr, ",\n");
+      int pin = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int value = atoi(token);
+
+      if (servos[pin] == NULL) {
+        servos[pin] = new Servo();
+        servos[pin]->attach(pin);
+      }
+
+      servos[pin]->write(value);
+
+      strcpy(message_out, "Ok");
     }
   }
 }

@@ -150,3 +150,5 @@ class PyDuino:
         r = self._sendAndReceive(f'analogRead,{pin}')
         return int(r)
 
+    def servoWrite(self, pin, value):
+        r = self._sendAndReceive(f'servoWrite,{pin},{value}')

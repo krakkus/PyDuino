@@ -1,9 +1,12 @@
+#include <Servo.h>
 #include <ESP8266WiFi.h>
 
 const char* deviceName = "ESP8266_1"; // Configure the Arduino name here
 
 const char* ssid = "TPLINK01";
 const char* password = "0652718161";
+
+Servo* servos[32] = {NULL};
 
 WiFiServer server(8266); // Create a server instance on port 8266
 
@@ -117,6 +120,23 @@ void processMessage(char* message_in, char* message_out) {
       int value = analogRead(pin); 
 
       itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
+    }
+
+    if (strcmp(token, "servoWrite") == 0) {
+      token = strtok(nullptr, ",\n");
+      int pin = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int value = atoi(token);
+
+      if (servos[pin] == NULL) {
+        servos[pin] = new Servo();
+        servos[pin]->attach(pin);
+      }
+
+      servos[pin]->write(value);
+
+      strcpy(message_out, "Ok");
     }
   }
 }
