@@ -56,6 +56,7 @@ The PyDuino.FindAll() function returns a dictonary of PyDuino objects. You can s
 * digitalWrite(pin, value)
 * analogRead(pin)
 * analogWrite(pin, value)
+* servoWrite(pin, value)
 
 # Some constants are available
 
