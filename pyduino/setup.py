@@ -4,7 +4,7 @@ setup(
     name="pyduino_control",
     version="0.1",
     packages=find_packages(),
-    install_requires=['serial', 'serial.tools.list_ports', 'sys', 'time'],
+    install_requires=['pyserial'],
     author="Your Name",
     author_email="your.email@example.com",
     description="A Python module to control one or more Arduino connected to a PC",
@@ -18,5 +18,9 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+
     ],
 )

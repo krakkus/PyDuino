@@ -1,42 +1,101 @@
 #include <Servo.h>
 
+#if defined(ESP8266)
+	#include <ESP8266WiFi.h>
+#endif
+
+#if defined(ESP32)
+	#include <WiFi.h>
+#endif
+
+const char* deviceName = "NONAME_1"; // Configure the Arduino name here
+
+const char* ssid = "TPLINK01";
+const char* password = "0652718161";
+
 Servo* servos[32] = {NULL};
 
-const char* deviceName = "NANO_1"; // Configure the Arduino name here
+#if defined(ESP8266) || defined(ESP32)
 
-void receiveMessage(char* message) {
-  int index = 0;
-  while (true) {
-    if (Serial.available()) {
-      char c = Serial.read();
-      if (c < 32 || c > 126) {
-        break;
-      }
-      message[index++] = c;
-    }
-  }
-  message[index++] = 0;
-}
+	WiFiServer server(8266); // Create a server instance on port 8266
 
-void sendMessage(char* message) {
-  if (message[0] != 0) {
-    Serial.println(message);
-  }
-}
+	void receiveMessage(WiFiClient client, char* message) {
+	  int index = 0;
+	  while (client.connected()) {
+		if (client.available()) {
+		  char c = client.read();
+		  if (c < 32 || c > 126) {
+			break;
+		  }
+		  message[index++] = c;
+		}
+	  }
+	  message[index++] = 0;
+	}
 
-void setup() {
-  Serial.begin(115200);
-}
+	void sendMessage(WiFiClient client, char* message) {
+	  if (message[0] != 0) {
+		client.println(message);
+	  }
+	}
 
-void loop() {
-  char message_in[50] = {0};
-  char message_out[50] = {0};
+	void setup() {
+	  WiFi.begin(ssid, password); // Connect to the WiFi network
+	  while (WiFi.status() != WL_CONNECTED) {
+		delay(1000);
+	  }
+	  server.begin(); // Start the server
+	}
 
-  receiveMessage(message_in);
-  processMessage(message_in, message_out);
-  sendMessage(message_out);
+	void loop() {
+	  WiFiClient client = server.available(); // Check for incoming client connections
+	  if (client) {
+		while (client.connected()) {
+		  char message_in[50] = {0};
+		  char message_out[50] = {0};
 
-}
+		  receiveMessage(client, message_in);
+		  processMessage(message_in, message_out);
+		  sendMessage(client, message_out);
+		}
+	  }
+	}
+	
+#else
+	void receiveMessage(char* message) {
+	  int index = 0;
+	  while (true) {
+		if (Serial.available()) {
+		  char c = Serial.read();
+		  if (c < 32 || c > 126) {
+			break;
+		  }
+		  message[index++] = c;
+		}
+	  }
+	  message[index++] = 0;
+	}
+
+	void sendMessage(char* message) {
+	  if (message[0] != 0) {
+		Serial.println(message);
+	  }
+	}
+
+	void setup() {
+	  Serial.begin(115200);
+	}
+
+	void loop() {
+	  char message_in[50] = {0};
+	  char message_out[50] = {0};
+
+	  receiveMessage(message_in);
+	  processMessage(message_in, message_out);
+	  sendMessage(message_out);
+	}
+#endif
+
 
 void processMessage(char* message_in, char* message_out) {
   message_out[0] = 0;
@@ -53,7 +112,7 @@ void processMessage(char* message_in, char* message_out) {
       strcpy(message_out, "Ok,");
       strcat(message_out, deviceName);
     }
-        
+    
     if (strcmp(token, "pinMode") == 0) {
       token = strtok(nullptr, ",\n");
       int pin = atoi(token);
@@ -107,7 +166,7 @@ void processMessage(char* message_in, char* message_out) {
 
       itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
     }
-    
+
     if (strcmp(token, "servoWrite") == 0) {
       token = strtok(nullptr, ",\n");
       int pin = atoi(token);
