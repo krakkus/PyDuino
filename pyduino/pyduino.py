@@ -7,8 +7,6 @@ import queue
 
 TIMEOUT = 1
 
-#LED_BUILTIN = 13
-
 HIGH = 1
 LOW = 0
 
@@ -17,12 +15,6 @@ INPUT_PULLUP = 2
 OUTPUT = 1
 INPUT = 0
 
-# A0 = 14
-# A1 = 15
-# A2 = 16
-# A3 = 17
-# A4 = 18
-# A5 = 19
 
 class PyDuino:
     def __init__(self, address, conn, name):
@@ -152,3 +144,6 @@ class PyDuino:
 
     def servoWrite(self, pin, value):
         r = self._sendAndReceive(f'servoWrite,{pin},{value}')
+
+    def stepperWrite(self, stepsPerRevolution, pin1, pin2, pin3, pin4, speed, steps):
+        r = self._sendAndReceive(f'servoWrite,{stepsPerRevolution},{pin1},{pin2},{pin3},{pin4},{speed},{steps}')

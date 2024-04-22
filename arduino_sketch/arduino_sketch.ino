@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <Stepper.h>
 
 #if defined(ESP8266)
 	#include <ESP8266WiFi.h>
@@ -14,6 +15,7 @@ const char* ssid = "TPLINK01";
 const char* password = "0652718161";
 
 Servo* servos[32] = {NULL};
+Stepper* steppers[32] = {NULL};
 
 #if defined(ESP8266) || defined(ESP32)
 
@@ -132,6 +134,7 @@ void processMessage(char* message_in, char* message_out) {
       token = strtok(nullptr, ",\n");
       int value = atoi(token);
 
+      pinMode(pin, OUTPUT);
       digitalWrite(pin, value); 
       
       strcpy(message_out, "Ok");
@@ -141,6 +144,7 @@ void processMessage(char* message_in, char* message_out) {
       token = strtok(nullptr, ",\n");
       int pin = atoi(token);
 
+      pinMode(pin, INPUT);
       int value = digitalRead(pin); 
 
       itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
@@ -153,6 +157,7 @@ void processMessage(char* message_in, char* message_out) {
       token = strtok(nullptr, ",\n");
       int value = atoi(token);
 
+      pinMode(pin, OUTPUT);
       analogWrite(pin, value); 
       
       strcpy(message_out, "Ok");
@@ -174,12 +179,44 @@ void processMessage(char* message_in, char* message_out) {
       token = strtok(nullptr, ",\n");
       int value = atoi(token);
 
-      if (servos[pin] == NULL) {
+      if (servos[pin] == nullptr ) {
         servos[pin] = new Servo();
         servos[pin]->attach(pin);
       }
 
       servos[pin]->write(value);
+
+      strcpy(message_out, "Ok");
+    }
+
+    if (strcmp(token, "stepperWrite") == 0) {
+      token = strtok(nullptr, ",\n");
+      int stepsPerRevolution = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int pin1 = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int pin2 = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int pin3 = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int pin4 = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int speed = atoi(token);
+
+      token = strtok(nullptr, ",\n");
+      int steps = atoi(token);
+
+      if (steppers[pin1] == nullptr ) {
+        steppers[pin1] = new Stepper(stepsPerRevolution, pin1, pin3, pin2, pin4);
+      }
+
+	    steppers[pin1]->setSpeed(speed);
+	    steppers[pin1]->step(steps);
 
       strcpy(message_out, "Ok");
     }

@@ -57,6 +57,7 @@ The PyDuino.FindAll() function returns a dictonary of PyDuino objects. You can s
 * analogRead(pin)
 * analogWrite(pin, value)
 * servoWrite(pin, value)
+* stepperWrite(stepsPerRevolution, pin1, pin2, pin3, pin4, speed, steps)
 
 # Some constants are available
 
@@ -70,7 +71,7 @@ The PyDuino.FindAll() function returns a dictonary of PyDuino objects. You can s
 
 # Serial
 
-For debugging, you can connect to serial or telnet to the device. Then you can send commands directly and see the response.
+For debugging, you can connect to serial or telnet to the device at 115200 baud. Then you can send commands directly and see the response.
 
     digitalWrite,13,1
 
