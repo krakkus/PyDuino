@@ -1,5 +1,4 @@
 #include <Servo.h>
-#include <Stepper.h>
 
 #if defined(ESP8266)
 	#include <ESP8266WiFi.h>
@@ -14,8 +13,20 @@ const char* deviceName = "NONAME_1"; // Configure the Arduino name here
 const char* ssid = "TPLINK01";
 const char* password = "0652718161";
 
-Servo* servos[32] = {NULL};
-Stepper* steppers[32] = {NULL};
+Servo* servos[32] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+int steppers[32] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+// Define the microstep sequence for A+ A- B+ B-
+int microstepSequence[8][4] = {
+  {1, 0, 0, 0},  // Step 0
+  {1, 1, 0, 0},  // Step 1
+  {0, 1, 0, 0},  // Step 2
+  {0, 1, 1, 0},  // Step 3
+  {0, 0, 1, 0},  // Step 4
+  {0, 0, 1, 1},  // Step 5
+  {0, 0, 0, 1},  // Step 6
+  {1, 0, 0, 1},  // Step 7
+};
 
 #if defined(ESP8266) || defined(ESP32)
 
@@ -191,9 +202,6 @@ void processMessage(char* message_in, char* message_out) {
 
     if (strcmp(token, "stepperWrite") == 0) {
       token = strtok(nullptr, ",\n");
-      int stepsPerRevolution = atoi(token);
-
-      token = strtok(nullptr, ",\n");
       int pin1 = atoi(token);
 
       token = strtok(nullptr, ",\n");
@@ -206,19 +214,44 @@ void processMessage(char* message_in, char* message_out) {
       int pin4 = atoi(token);
 
       token = strtok(nullptr, ",\n");
-      int speed = atoi(token);
-
-      token = strtok(nullptr, ",\n");
       int steps = atoi(token);
 
-      if (steppers[pin1] == nullptr ) {
-        steppers[pin1] = new Stepper(stepsPerRevolution, pin1, pin3, pin2, pin4);
+      token = strtok(nullptr, ",\n");
+      int sleep = atoi(token);
+
+      if (steppers[pin1] == -1) {
+        pinMode(pin1, OUTPUT);
+        pinMode(pin2, OUTPUT);
+        pinMode(pin3, OUTPUT);
+        pinMode(pin4, OUTPUT);   
+
+        steppers[pin1] = 0;
       }
 
-	    steppers[pin1]->setSpeed(speed);
-	    steppers[pin1]->step(steps);
+      moveSteps(pin1, pin2, pin3, pin4, steps, sleep);
 
       strcpy(message_out, "Ok");
     }
+  }
+}
+
+// Function to make a certain number of steps in a specified direction
+void moveSteps(int pin1, int pin2, int pin3, int pin4, int steps, int sleep) {
+  int sign = (steps > 0) - (steps < 0);
+  // Loop for the desired number of microsteps
+  for (int i = 0; i < abs(steps); i++) {
+    // Get the microstep sequence index
+    steppers[pin1] += sign;
+    steppers[pin1] = steppers[pin1] % 16;
+    if (steppers[pin1] < 0) steppers[pin1] += 16;
+
+    // Set the coil pins based on the microstep sequence
+    digitalWrite(pin1, microstepSequence[steppers[pin1]][0]);
+    digitalWrite(pin2, microstepSequence[steppers[pin1]][1]);
+    digitalWrite(pin3, microstepSequence[steppers[pin1]][2]);
+    digitalWrite(pin4, microstepSequence[steppers[pin1]][3]);
+
+    // Delay to control speed of rotation
+    delayMicroseconds(sleep); // Adjust this delay as needed for your motor
   }
 }
