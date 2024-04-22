@@ -146,4 +146,4 @@ class PyDuino:
         r = self._sendAndReceive(f'servoWrite,{pin},{value}')
 
     def stepperWrite(self, stepsPerRevolution, pin1, pin2, pin3, pin4, speed, steps):
-        r = self._sendAndReceive(f'servoWrite,{stepsPerRevolution},{pin1},{pin2},{pin3},{pin4},{speed},{steps}')
+        r = self._sendAndReceive(f'stepperWrite,{stepsPerRevolution},{pin1},{pin2},{pin3},{pin4},{speed},{steps}')
