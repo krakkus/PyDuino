@@ -1,11 +1,11 @@
-#include <Servo.h>
-
 #if defined(ESP8266)
 	#include <ESP8266WiFi.h>
-#endif
-
-#if defined(ESP32)
+	#include <Servo.h>
+#elif defined(ESP32)
 	#include <WiFi.h>
+	#include "ESP32Servo.h"
+#else
+	#include <Servo.h>
 #endif
 
 const char* deviceName = "NONAME_1"; // Configure the Arduino name here
