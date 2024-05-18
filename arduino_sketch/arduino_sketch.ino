@@ -8,10 +8,10 @@
 	#include <Servo.h>
 #endif
 
-const char* deviceName = "NONAME_1"; // Configure the Arduino name here
+const char* deviceName = "ESP32_1"; // Configure the Arduino name here
 
-const char* ssid = "TPLINK01";
-const char* password = "0652718161";
+const char* ssid = "MYWIFI";
+const char* password = "MYPASS";
 
 Servo* servos[32] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 int steppers[32] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
