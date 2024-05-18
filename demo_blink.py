@@ -13,13 +13,13 @@ for k, v in devices.items():
 while True:
 
     # Turn the lamp off
-    pot = devices['ESP32_1'].digitalWrite(1, 0)
+    pot = devices['ESP32_1'].digitalWrite(2, 0)
 
     # Wait 5 seconds
     time.sleep(5)
 
     # Turn the lamp on
-    pot = devices['ESP32_1'].digitalWrite(1, 1)
+    pot = devices['ESP32_1'].digitalWrite(2, 1)
 
     # Wait 5 seconds
     time.sleep(5)
