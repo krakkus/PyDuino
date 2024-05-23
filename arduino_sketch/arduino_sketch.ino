@@ -10,8 +10,8 @@
 
 const char* deviceName = "ESP32_1"; // Configure the Arduino name here
 
-const char* ssid = "MYWIFI";
-const char* password = "MYPASS";
+const char* ssid = "TPLINK01";
+const char* password = "0652718161";
 
 Servo* servos[32] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 int steppers[32] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
@@ -63,14 +63,14 @@ int microstepSequence[8][4] = {
 	void loop() {
 	  WiFiClient client = server.available(); // Check for incoming client connections
 	  if (client) {
-		while (client.connected()) {
-		  char message_in[50] = {0};
-		  char message_out[50] = {0};
+      while (client.connected()) {
+        char message_in[50] = {0};
+        char message_out[50] = {0};
 
-		  receiveMessage(client, message_in);
-		  processMessage(message_in, message_out);
-		  sendMessage(client, message_out);
-		}
+        receiveMessage(client, message_in);
+        processMessage(message_in, message_out);
+        sendMessage(client, message_out);
+      }
 	  }
 	}
 	
