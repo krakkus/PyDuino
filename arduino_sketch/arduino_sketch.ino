@@ -178,6 +178,7 @@ void processMessage(char* message_in, char* message_out) {
       token = strtok(nullptr, ",\n");
       int pin = atoi(token);
 
+      pinMode(pin, INPUT);
       int value = analogRead(pin); 
 
       itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
