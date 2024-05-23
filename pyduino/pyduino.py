@@ -23,13 +23,28 @@ class PyDuino:
         self.name = name
 
     @staticmethod
-    def FindAll():
-        # Get local IP address and subnet
-        ip = socket.gethostbyname(socket.gethostname())
-        subnet = ip[:ip.rfind('.')+1]
+    def FindAll(target_ip=None):
+        all_ips = []
 
-        # Create list of IP addresses in subnet
-        candidates = [subnet + str(i) for i in range(1, 255)]
+        # Get all network interfaces
+        for interface in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            address = interface[4][0]
+
+            if not address.startswith('fe80:'):
+                # Extract IP address and subnet
+                ip = address.split('.')[0:3]  # Get first three parts for subnet
+                subnet = '.'.join(ip) + '.'
+
+                # Create list of candidates for this subnet
+                candidates = [subnet + str(i) for i in range(1, 255)]
+                all_ips.extend(candidates)
+
+        # Add candidates from target subnet (if provided)
+        if target_ip:
+            target_subnet = target_ip.split('.')[0:3]
+            target_subnet = '.'.join(target_subnet) + '.'
+            target_candidates = [target_subnet + str(i) for i in range(1, 255)]
+            all_ips.extend(target_candidates)
 
         # Get list of available COM ports and add them to candidates
         ports = [port.device for port in serial.tools.list_ports.comports()]
@@ -38,7 +53,7 @@ class PyDuino:
         # Validate candidates using multithreading and a thread-safe queue
         available = queue.Queue()
         threads = []
-        for candidate in candidates:
+        for candidate in all_ips:
             thread = threading.Thread(target=PyDuino._validate, args=(candidate, available))
             threads.append(thread)
             thread.start()

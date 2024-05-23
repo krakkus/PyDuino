@@ -32,25 +32,27 @@ int microstepSequence[8][4] = {
 
 	WiFiServer server(8266); // Create a server instance on port 8266
 
-	void receiveMessage(WiFiClient client, char* message) {
-	  int index = 0;
-	  while (client.connected()) {
-		if (client.available()) {
-		  char c = client.read();
-		  if (c < 32 || c > 126) {
-			break;
-		  }
-		  message[index++] = c;
-		}
-	  }
-	  message[index++] = 0;
-	}
+  void receiveMessage(WiFiClient client, String& message) {
+    while (client.connected()) {
+      if (client.available()) {
+        char c = client.read();
+        // Check for carriage return followed by newline
+        if (c == '\r' && client.available() && client.peek() == '\n') {
+          client.read(); // Consume the newline character
+          break;
+        } else {
+          // Append valid characters
+          message += c;
+        }
+      }
+    }
+  }
 
-	void sendMessage(WiFiClient client, char* message) {
-	  if (message[0] != 0) {
-		client.println(message);
-	  }
-	}
+  void sendMessage(WiFiClient client, String& message) {
+    if (message.length() > 0) {
+      client.println(message);
+    }
+  }
 
 	void setup() {
 	  WiFi.begin(ssid, password); // Connect to the WiFi network
@@ -60,70 +62,71 @@ int microstepSequence[8][4] = {
 	  server.begin(); // Start the server
 	}
 
-	void loop() {
-	  WiFiClient client = server.available(); // Check for incoming client connections
-	  if (client) {
-      while (client.connected()) {
-        char message_in[50] = {0};
-        char message_out[50] = {0};
+void loop() {
+  WiFiClient client = server.available(); // Check for incoming client connections
+  if (client) {
+    while (client.connected()) {
+      String message_in = "";
+      String message_out = "";
 
-        receiveMessage(client, message_in);
-        processMessage(message_in, message_out);
-        sendMessage(client, message_out);
-      }
-	  }
-	}
+      receiveMessage(client, message_in);
+      processMessage(message_in, message_out);
+      sendMessage(client, message_out);
+    }
+  }
+}
 	
 #else
-	void receiveMessage(char* message) {
-	  int index = 0;
-	  while (true) {
-		if (Serial.available()) {
-		  char c = Serial.read();
-		  if (c < 32 || c > 126) {
-			break;
-		  }
-		  message[index++] = c;
-		}
-	  }
-	  message[index++] = 0;
-	}
 
-	void sendMessage(char* message) {
-	  if (message[0] != 0) {
-		Serial.println(message);
-	  }
-	}
+void receiveMessage(char* message) {
+  int index = 0;
+  while (true) {
+  if (Serial.available()) {
+    char c = Serial.read();
+    if (c < 32 || c > 126) {
+    break;
+    }
+    message[index++] = c;
+  }
+  }
+  message[index++] = 0;
+}
 
-	void setup() {
-	  Serial.begin(115200);
-	}
+void sendMessage(char* message) {
+  if (message[0] != 0) {
+  Serial.println(message);
+  }
+}
 
-	void loop() {
-	  char message_in[50] = {0};
-	  char message_out[50] = {0};
+void setup() {
+  Serial.begin(115200);
+}
 
-	  receiveMessage(message_in);
-	  processMessage(message_in, message_out);
-	  sendMessage(message_out);
-	}
+void loop() {
+  char message_in[50] = {0};
+  char message_out[50] = {0};
+
+  receiveMessage(message_in);
+  processMessage(message_in, message_out);
+  sendMessage(message_out);
+}
 #endif
 
 
-void processMessage(char* message_in, char* message_out) {
-  message_out[0] = 0;
+void processMessage(String message_in, String& message_out) {
+  message_out = "";  // Clear the output message
 
-  char token_buffer[50] = {0};
-  strcpy(token_buffer, message_in);
+  char token_buffer[50];
+  message_in.toCharArray(token_buffer, sizeof(token_buffer));  // Copy String to char array
 
   char *token = strtok(token_buffer, ",\n");
 
   if (token != nullptr) {
-    strcpy(message_out, "Error");
+    message_out = "Error";
 
     if (strcmp(token, "Handshake") == 0) {
-      strcpy(message_out, "Ok,");
-      strcat(message_out, deviceName);
+      message_out = "Ok,";
+      message_out += deviceName;
     }
     
     if (strcmp(token, "pinMode") == 0) {
@@ -135,7 +138,7 @@ void processMessage(char* message_in, char* message_out) {
 
       pinMode(pin, value);
       
-      strcpy(message_out, "Ok");
+      message_out = "Ok";
     }
     
     if (strcmp(token, "digitalWrite") == 0) {
@@ -148,7 +151,7 @@ void processMessage(char* message_in, char* message_out) {
       pinMode(pin, OUTPUT);
       digitalWrite(pin, value); 
       
-      strcpy(message_out, "Ok");
+      message_out = "Ok";
     }    
 
     if (strcmp(token, "digitalRead") == 0) {
@@ -158,7 +161,7 @@ void processMessage(char* message_in, char* message_out) {
       pinMode(pin, INPUT);
       int value = digitalRead(pin); 
 
-      itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
+      message_out = String(value);  // Convert int to String using String constructor
     }
         
     if (strcmp(token, "analogWrite") == 0) {
@@ -171,7 +174,7 @@ void processMessage(char* message_in, char* message_out) {
       pinMode(pin, OUTPUT);
       analogWrite(pin, value); 
       
-      strcpy(message_out, "Ok");
+      message_out = "Ok";
     }    
 
     if (strcmp(token, "analogRead") == 0) {
@@ -181,7 +184,7 @@ void processMessage(char* message_in, char* message_out) {
       pinMode(pin, INPUT);
       int value = analogRead(pin); 
 
-      itoa(value, message_out, 10);  // convert the integer to a string with a base of 10
+      message_out = String(value);  // Convert int to String using String constructor
     }
 
     if (strcmp(token, "servoWrite") == 0) {
@@ -198,7 +201,7 @@ void processMessage(char* message_in, char* message_out) {
 
       servos[pin]->write(value);
 
-      strcpy(message_out, "Ok");
+      message_out = "Ok";
     }
 
     if (strcmp(token, "stepperWrite") == 0) {
@@ -231,7 +234,7 @@ void processMessage(char* message_in, char* message_out) {
 
       moveSteps(pin1, pin2, pin3, pin4, steps, sleep);
 
-      strcpy(message_out, "Ok");
+      message_out = "Ok";
     }
   }
 }
