@@ -55,6 +55,8 @@ int microstepSequence[8][4] = {
   }
 
 	void setup() {
+    Serial.begin(115200);
+
 	  WiFi.begin(ssid, password); // Connect to the WiFi network
 	  while (WiFi.status() != WL_CONNECTED) {
 		delay(1000);
@@ -116,126 +118,121 @@ void loop() {
 void processMessage(String message_in, String& message_out) {
   message_out = "";  // Clear the output message
 
-  char token_buffer[50];
-  message_in.toCharArray(token_buffer, sizeof(token_buffer));  // Copy String to char array
+  String tokens[10];
+  int numTokens = 0;
+  
+  while (message_in.length()) {
+    int index = message_in.indexOf(",");
+    if (index == -1) {
+      tokens[numTokens++] = message_in;
+      message_in = "";
+    }
+    else {
+      String before = message_in.substring(0, index);
+      String after = message_in.substring(index + 1);
+      tokens[numTokens++] = before;
+      message_in = after;
+    }
+  }
 
-  char *token = strtok(token_buffer, ",\n");
+  Serial.println();
+  Serial.println("=========== INCOMMING MESSAGE ===========");
+  Serial.print("numTokens: ");
+  Serial.println(numTokens);
+  for (int i = 0; i < numTokens; i++) {
+    Serial.print(i);
+    Serial.print(" : ");
+    Serial.println(tokens[i]);  // Print each string with a newline
+  }
 
-  if (token != nullptr) {
+  if (tokens[0] == nullptr) {
     message_out = "Error";
+    return;
+  }
 
-    if (strcmp(token, "Handshake") == 0) {
-      message_out = "Ok,";
-      message_out += deviceName;
-    }
+  if (tokens[0] == "Handshake") {
+    message_out = "Ok,";
+    message_out += deviceName;
+  }
+  
+  if (tokens[0] == "pinMode") {
+    int pin = tokens[1].toInt();
+    int value = tokens[2].toInt();
+    pinMode(pin, value);
     
-    if (strcmp(token, "pinMode") == 0) {
-      token = strtok(nullptr, ",\n");
-      int pin = atoi(token);
-
-      token = strtok(nullptr, ",\n");
-      int value = atoi(token);
-
-      pinMode(pin, value);
-      
-      message_out = "Ok";
-    }
+    message_out = "Ok";
+  }
+  
+  if (tokens[0] == "digitalWrite") {
+    int pin = tokens[1].toInt();
+    int value = tokens[2].toInt();
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, value); 
     
-    if (strcmp(token, "digitalWrite") == 0) {
-      token = strtok(nullptr, ",\n");
-      int pin = atoi(token);
+    message_out = "Ok";
+  }    
 
-      token = strtok(nullptr, ",\n");
-      int value = atoi(token);
+  if (tokens[0] == "digitalRead") {
+    int pin = tokens[1].toInt();
+    pinMode(pin, INPUT);
+    int value = digitalRead(pin); 
 
-      pinMode(pin, OUTPUT);
-      digitalWrite(pin, value); 
+    message_out = String(value);  // Convert int to String using String constructor
+  }
       
-      message_out = "Ok";
-    }    
+  if (tokens[0] == "analogWrite") {
+    int pin = tokens[1].toInt();
+    int value = tokens[2].toInt();
 
-    if (strcmp(token, "digitalRead") == 0) {
-      token = strtok(nullptr, ",\n");
-      int pin = atoi(token);
+    pinMode(pin, OUTPUT);
+    analogWrite(pin, value); 
+    
+    message_out = "Ok";
+  }    
 
-      pinMode(pin, INPUT);
-      int value = digitalRead(pin); 
+  if (tokens[0] == "analogRead") {
+    int pin = tokens[1].toInt();
 
-      message_out = String(value);  // Convert int to String using String constructor
-    }
-        
-    if (strcmp(token, "analogWrite") == 0) {
-      token = strtok(nullptr, ",\n");
-      int pin = atoi(token);
+    pinMode(pin, INPUT);
+    int value = analogRead(pin); 
 
-      token = strtok(nullptr, ",\n");
-      int value = atoi(token);
+    message_out = String(value);  // Convert int to String using String constructor
+  }
 
-      pinMode(pin, OUTPUT);
-      analogWrite(pin, value); 
-      
-      message_out = "Ok";
-    }    
+  if (tokens[0] == "servoWrite") {
+    int pin = tokens[1].toInt();
+    int value = tokens[2].toInt();
 
-    if (strcmp(token, "analogRead") == 0) {
-      token = strtok(nullptr, ",\n");
-      int pin = atoi(token);
-
-      pinMode(pin, INPUT);
-      int value = analogRead(pin); 
-
-      message_out = String(value);  // Convert int to String using String constructor
+    if (servos[pin] == nullptr ) {
+      servos[pin] = new Servo();
+      servos[pin]->attach(pin);
     }
 
-    if (strcmp(token, "servoWrite") == 0) {
-      token = strtok(nullptr, ",\n");
-      int pin = atoi(token);
+    servos[pin]->write(value);
 
-      token = strtok(nullptr, ",\n");
-      int value = atoi(token);
+    message_out = "Ok";
+  }
 
-      if (servos[pin] == nullptr ) {
-        servos[pin] = new Servo();
-        servos[pin]->attach(pin);
-      }
+  if (tokens[0] == "stepperWrite") {
+    int pin1 = tokens[1].toInt();
+    int pin2 = tokens[2].toInt();
+    int pin3 = tokens[3].toInt();
+    int pin4 = tokens[4].toInt();
+    int steps = tokens[5].toInt();
+    int sleep = tokens[6].toInt();
 
-      servos[pin]->write(value);
+    if (steppers[pin1] == -1) {
+      pinMode(pin1, OUTPUT);
+      pinMode(pin2, OUTPUT);
+      pinMode(pin3, OUTPUT);
+      pinMode(pin4, OUTPUT);   
 
-      message_out = "Ok";
+      steppers[pin1] = 0;
     }
 
-    if (strcmp(token, "stepperWrite") == 0) {
-      token = strtok(nullptr, ",\n");
-      int pin1 = atoi(token);
+    moveSteps(pin1, pin2, pin3, pin4, steps, sleep);
 
-      token = strtok(nullptr, ",\n");
-      int pin2 = atoi(token);
-
-      token = strtok(nullptr, ",\n");
-      int pin3 = atoi(token);
-
-      token = strtok(nullptr, ",\n");
-      int pin4 = atoi(token);
-
-      token = strtok(nullptr, ",\n");
-      int steps = atoi(token);
-
-      token = strtok(nullptr, ",\n");
-      int sleep = atoi(token);
-
-      if (steppers[pin1] == -1) {
-        pinMode(pin1, OUTPUT);
-        pinMode(pin2, OUTPUT);
-        pinMode(pin3, OUTPUT);
-        pinMode(pin4, OUTPUT);   
-
-        steppers[pin1] = 0;
-      }
-
-      moveSteps(pin1, pin2, pin3, pin4, steps, sleep);
-
-      message_out = "Ok";
-    }
+    message_out = "Ok";
   }
 }
 

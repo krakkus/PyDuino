@@ -8,11 +8,11 @@ devices = PyDuino.FindAll()
 for k, v in devices.items():
     print(k, v.address)
 
-# esp = devices['ESP32_1']
-#
-# esp.digitalWrite(34, HIGH)
-# esp.digitalWrite(32, LOW)
-#
-# a = esp.analogRead(35)
-#
-# print(a)
+esp = devices['ESP32_1']
+
+esp.digitalWrite(35, 1)
+esp.digitalWrite(33, 1)
+
+a = esp.analogRead(32)
+print(a)
+
