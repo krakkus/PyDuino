@@ -3,7 +3,7 @@
 	#include <Servo.h>
 #elif defined(ESP32)
 	#include <WiFi.h>
-	#include "ESP32Servo.h"
+	#include "src/ESP32Servo.h"
 #else
 	#include <Servo.h>
 #endif

@@ -163,3 +163,29 @@ class PyDuino:
     def stepperWrite(self, pin1, pin2, pin3, pin4, steps, sleep):
         r = self._sendAndReceive(f'stepperWrite,{pin1},{pin2},{pin3},{pin4},{steps},{sleep}')
 
+
+def map_range(sample_1_x, sample_1_y, sample_2_x, sample_2_y, my_x):
+  """
+  Maps a value from one range to another defined by two data points.
+
+  Args:
+      sample_1_x: The x-value of the first data point.
+      sample_1_y: The y-value of the first data point.
+      sample_2_x: The x-value of the second data point.
+      sample_2_y: The y-value of the second data point.
+      my_x: The value to be mapped.
+
+  Returns:
+      The mapped value within the new range.
+  """
+
+  # Avoid division by zero
+  if sample_1_x == sample_2_x:
+    return sample_1_y
+
+  # Calculate the slope and offset
+  slope = (sample_2_y - sample_1_y) / (sample_2_x - sample_1_x)
+  offset = sample_1_y - (slope * sample_1_x)
+
+  # Apply linear interpolation
+  return (slope * my_x) + offset
