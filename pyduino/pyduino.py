@@ -160,8 +160,11 @@ class PyDuino:
     def servoWrite(self, pin, value):
         r = self._sendAndReceive(f'servoWrite,{pin},{value}')
 
-    def stepperWrite(self, pin1, pin2, pin3, pin4, steps, sleep):
-        r = self._sendAndReceive(f'stepperWrite,{pin1},{pin2},{pin3},{pin4},{steps},{sleep}')
+    def stepperWrite_1(self, pin1, pin2, pin3, pin4, steps, sleep):
+        r = self._sendAndReceive(f'stepperWrite_1,{pin1},{pin2},{pin3},{pin4},{steps},{sleep}')
+
+    def stepperWrite_2(self, pin1, pin2, pin3, pin4, pin5, steps, sleep):
+        r = self._sendAndReceive(f'stepperWrite_2,{pin1},{pin2},{pin3},{pin4},{pin5},{steps},{sleep}')
 
 
 def map_range(sample_1_x, sample_1_y, sample_2_x, sample_2_y, my_x):

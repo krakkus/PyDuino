@@ -13,20 +13,8 @@ const char* deviceName = "ESP32_1"; // Configure the Arduino name here
 const char* ssid = "TPLINK01";
 const char* password = "0652718161";
 
-Servo* servos[32] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-int steppers[32] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-
-// Define the microstep sequence for A+ A- B+ B-
-int microstepSequence[8][4] = {
-  {1, 0, 0, 0},  // Step 0
-  {1, 1, 0, 0},  // Step 1
-  {0, 1, 0, 0},  // Step 2
-  {0, 1, 1, 0},  // Step 3
-  {0, 0, 1, 0},  // Step 4
-  {0, 0, 1, 1},  // Step 5
-  {0, 0, 0, 1},  // Step 6
-  {1, 0, 0, 1},  // Step 7
-};
+Servo* servos[48] = {};
+int steppers[48] = {};
 
 #if defined(ESP8266) || defined(ESP32)
 
@@ -55,6 +43,11 @@ int microstepSequence[8][4] = {
   }
 
 	void setup() {
+    for (int i = 0; i < 48; i++) {
+      servos[i] = nullptr;
+      steppers[i] = -1;
+    }
+
     Serial.begin(115200);
 
 	  WiFi.begin(ssid, password); // Connect to the WiFi network
@@ -213,7 +206,7 @@ void processMessage(String message_in, String& message_out) {
     message_out = "Ok";
   }
 
-  if (tokens[0] == "stepperWrite") {
+  if (tokens[0] == "stepperWrite_1") {
     int pin1 = tokens[1].toInt();
     int pin2 = tokens[2].toInt();
     int pin3 = tokens[3].toInt();
@@ -230,29 +223,111 @@ void processMessage(String message_in, String& message_out) {
       steppers[pin1] = 0;
     }
 
-    moveSteps(pin1, pin2, pin3, pin4, steps, sleep);
+    stepperWrite_1(pin1, pin2, pin3, pin4, steps, sleep);
+
+    message_out = "Ok";
+  }
+
+  if (tokens[0] == "stepperWrite_2") {
+    int pin1 = tokens[1].toInt();
+    int pin2 = tokens[2].toInt();
+    int pin3 = tokens[3].toInt();
+    int pin4 = tokens[4].toInt();
+    int steps = tokens[5].toInt();
+    int sleep = tokens[6].toInt();
+
+    if (steppers[pin1] == -1) {
+      pinMode(pin1, OUTPUT);
+      pinMode(pin2, OUTPUT);
+      pinMode(pin3, OUTPUT);
+      pinMode(pin4, OUTPUT);   
+
+      steppers[pin1] = 0;
+    }
+
+    stepperWrite_2(pin1, pin2, pin3, pin4, pin5, steps, sleep);
 
     message_out = "Ok";
   }
 }
 
+// Bipolar motor, 4 wires
+//                      pin1      pin2      pin3      pin4
+
+int stepperSequence_1[4][4] = {
+  {1, 0, 0, 0},  // Step 0
+  {0, 1, 0, 0},  // Step 1
+  {0, 0, 1, 0},  // Step 2
+  {0, 0, 0, 1},  // Step 3
+};
+
 // Function to make a certain number of steps in a specified direction
-void moveSteps(int pin1, int pin2, int pin3, int pin4, int steps, int sleep) {
+void stepperWrite_1(int pin1, int pin2, int pin3, int pin4, int steps, int sleep) {
   int sign = (steps > 0) - (steps < 0);
   // Loop for the desired number of microsteps
   for (int i = 0; i < abs(steps); i++) {
     // Get the microstep sequence index
     steppers[pin1] += sign;
-    steppers[pin1] = steppers[pin1] % 16;
-    if (steppers[pin1] < 0) steppers[pin1] += 16;
+    steppers[pin1] = steppers[pin1] % 4;
+    if (steppers[pin1] < 0) steppers[pin1] += 4;
 
     // Set the coil pins based on the microstep sequence
-    digitalWrite(pin1, microstepSequence[steppers[pin1]][0]);
-    digitalWrite(pin2, microstepSequence[steppers[pin1]][1]);
-    digitalWrite(pin3, microstepSequence[steppers[pin1]][2]);
-    digitalWrite(pin4, microstepSequence[steppers[pin1]][3]);
+    //pinMode(pin1, OUTPUT);
+    digitalWrite(pin1, stepperSequence_1[steppers[pin1]][0]);
+    
+    //pinMode(pin2, OUTPUT);
+    digitalWrite(pin2, stepperSequence_1[steppers[pin1]][1]);
+    
+    //pinMode(pin3, OUTPUT);
+    digitalWrite(pin3, stepperSequence_1[steppers[pin1]][2]);
+    
+    //pinMode(pin4, OUTPUT);
+    digitalWrite(pin4, stepperSequence_1[steppers[pin1]][3]);
 
     // Delay to control speed of rotation
-    delayMicroseconds(sleep); // Adjust this delay as needed for your motor
+    delayMicroseconds(sleep * 1000); // Adjust this delay as needed for your motor
+
+    //Serial.print(".");
+  }
+}
+
+// Unipolar, 5 wires
+//              GND     VIN     pin1      pin2      pin3      pin4 
+// ULN2003A     GND     VIN     IN1       IN2       IN3       IN4
+// 28BYJ-48             Red     Orange    Yellow    Pink      Blue
+int stepperSequence_2[4][4] = {
+  {1, 1, 1, 0},  // Step 0
+  {1, 1, 0, 1},  // Step 1
+  {1, 0, 1, 1},  // Step 2
+  {0, 1, 1, 1},  // Step 3
+};
+
+// Function to make a certain number of steps in a specified direction
+void stepperWrite_2(int pin1, int pin2, int pin3, int pin4, int steps, int sleep) {
+  int sign = (steps > 0) - (steps < 0);
+  // Loop for the desired number of microsteps
+  for (int i = 0; i < abs(steps); i++) {
+    // Get the microstep sequence index
+    steppers[pin1] += sign;
+    steppers[pin1] = steppers[pin1] % 4;
+    if (steppers[pin1] < 0) steppers[pin1] += 4;
+
+    // Set the coil pins based on the microstep sequence
+    //pinMode(pin1, OUTPUT);
+    digitalWrite(pin1, stepperSequence_2[steppers[pin1]][0]);
+
+    //pinMode(pin2, OUTPUT);
+    digitalWrite(pin2, stepperSequence_2[steppers[pin1]][1]);
+    
+    //pinMode(pin3, OUTPUT);
+    digitalWrite(pin3, stepperSequence_2[steppers[pin1]][2]);
+    
+    //pinMode(pin4, OUTPUT);
+    digitalWrite(pin4, stepperSequence_2[steppers[pin1]][3]);
+
+    // Delay to control speed of rotation
+    delayMicroseconds(sleep * 1000); // Adjust this delay as needed for your motor
+
+    //Serial.print(".");
   }
 }
