@@ -252,8 +252,8 @@ void processMessage(String message_in, String& message_out) {
 }
 
 // Bipolar motor, 4 wires
-//                      pin1      pin2      pin3      pin4
-
+//              pin1      pin2      pin3      pin4
+// GENERIC      A+        A-        B+        B-
 int stepperSequence_1[4][4] = {
   {1, 0, 0, 0},  // Step 0
   {0, 1, 0, 0},  // Step 1
@@ -292,7 +292,8 @@ void stepperWrite_1(int pin1, int pin2, int pin3, int pin4, int steps, int sleep
 }
 
 // Unipolar, 5 wires
-//              GND     VIN     pin1      pin2      pin3      pin4 
+//                              pin1      pin2      pin3      pin4 
+// GENERIC              Center  Coil1     Coil3     Coil2     Coil4
 // ULN2003A     GND     VIN     IN1       IN2       IN3       IN4
 // 28BYJ-48             Red     Orange    Yellow    Pink      Blue
 int stepperSequence_2[4][4] = {
