@@ -10,4 +10,4 @@ for k, v in devices.items():
 
 esp = devices['ESP32_1']
 
-esp.stepperWrite_2(15, 2, 4, 18, 5, 1000, 3)
+esp.stepperWrite_2(15, 2, 4, 18, 5, 1000, 3000)

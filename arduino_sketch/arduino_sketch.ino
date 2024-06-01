@@ -1,3 +1,14 @@
+// START OF EEPROM
+
+int debug_level = 2;    // 0 = None, 1 = Error, 2 = All
+int debug_serial = 1;   // Debug to serial or not
+
+char* deviceName = "ESP32_1"; // Configure the Arduino name here
+char* ssid = "TPLINK01";
+char* password = "0652718161";
+
+// END OF EEPROM
+
 #if defined(ESP8266)
 	#include <ESP8266WiFi.h>
 	#include <Servo.h>
@@ -8,13 +19,9 @@
 	#include <Servo.h>
 #endif
 
-const char* deviceName = "ESP32_1"; // Configure the Arduino name here
-
-const char* ssid = "TPLINK01";
-const char* password = "0652718161";
-
 Servo* servos[48] = {};
 int steppers[48] = {};
+String pinOwner[48];
 
 #if defined(ESP8266) || defined(ESP32)
 
@@ -48,7 +55,9 @@ int steppers[48] = {};
       steppers[i] = -1;
     }
 
-    Serial.begin(115200);
+    if (debug_serial) {
+      Serial.begin(115200);
+    }
 
 	  WiFi.begin(ssid, password); // Connect to the WiFi network
 	  while (WiFi.status() != WL_CONNECTED) {
@@ -128,14 +137,15 @@ void processMessage(String message_in, String& message_out) {
     }
   }
 
-  Serial.println();
-  Serial.println("=========== INCOMMING MESSAGE ===========");
-  Serial.print("numTokens: ");
-  Serial.println(numTokens);
-  for (int i = 0; i < numTokens; i++) {
-    Serial.print(i);
-    Serial.print(" : ");
-    Serial.println(tokens[i]);  // Print each string with a newline
+  if (debug_level > 0) {
+    String dbg = "=========== INCOMMING MESSAGE ===========\n";
+    dbg += ("numTokens: " + String(numTokens) + "\n");
+    for (int i = 0; i < numTokens; i++) {
+      dbg += (String(i) + " : " + tokens[i] + "\n");
+    }
+    if (debug_serial == 1) {
+      Serial.println(dbg);
+    }
   }
 
   if (tokens[0] == nullptr) {
@@ -149,6 +159,7 @@ void processMessage(String message_in, String& message_out) {
   }
   
   if (tokens[0] == "pinMode") {
+    // TODO: How to handle this function with the pin-owner checking?
     int pin = tokens[1].toInt();
     int value = tokens[2].toInt();
     pinMode(pin, value);
@@ -159,7 +170,20 @@ void processMessage(String message_in, String& message_out) {
   if (tokens[0] == "digitalWrite") {
     int pin = tokens[1].toInt();
     int value = tokens[2].toInt();
-    pinMode(pin, OUTPUT);
+
+    String id = ("digitalWrite_" + String(pin));
+    if (pinOwner[pin] != id) {
+      if (debug_level > 0) {
+        String dbg = "Pin " + String(pin) + " owner changed from pinOwner[pin] to " + id;
+          if (debug_serial == 1) {
+          Serial.println(dbg);
+        }
+      }
+
+      pinOwner[pin] = id;
+      pinMode(pin, OUTPUT);
+    }
+
     digitalWrite(pin, value); 
     
     message_out = "Ok";
@@ -245,7 +269,7 @@ void processMessage(String message_in, String& message_out) {
       steppers[pin1] = 0;
     }
 
-    stepperWrite_2(pin1, pin2, pin3, pin4, pin5, steps, sleep);
+    stepperWrite_2(pin1, pin2, pin3, pin4, steps, sleep);
 
     message_out = "Ok";
   }
@@ -272,20 +296,13 @@ void stepperWrite_1(int pin1, int pin2, int pin3, int pin4, int steps, int sleep
     if (steppers[pin1] < 0) steppers[pin1] += 4;
 
     // Set the coil pins based on the microstep sequence
-    //pinMode(pin1, OUTPUT);
     digitalWrite(pin1, stepperSequence_1[steppers[pin1]][0]);
-    
-    //pinMode(pin2, OUTPUT);
     digitalWrite(pin2, stepperSequence_1[steppers[pin1]][1]);
-    
-    //pinMode(pin3, OUTPUT);
     digitalWrite(pin3, stepperSequence_1[steppers[pin1]][2]);
-    
-    //pinMode(pin4, OUTPUT);
     digitalWrite(pin4, stepperSequence_1[steppers[pin1]][3]);
 
     // Delay to control speed of rotation
-    delayMicroseconds(sleep * 1000); // Adjust this delay as needed for your motor
+    delayMicroseconds(sleep); // Adjust this delay as needed for your motor
 
     //Serial.print(".");
   }
@@ -314,20 +331,13 @@ void stepperWrite_2(int pin1, int pin2, int pin3, int pin4, int steps, int sleep
     if (steppers[pin1] < 0) steppers[pin1] += 4;
 
     // Set the coil pins based on the microstep sequence
-    //pinMode(pin1, OUTPUT);
     digitalWrite(pin1, stepperSequence_2[steppers[pin1]][0]);
-
-    //pinMode(pin2, OUTPUT);
     digitalWrite(pin2, stepperSequence_2[steppers[pin1]][1]);
-    
-    //pinMode(pin3, OUTPUT);
     digitalWrite(pin3, stepperSequence_2[steppers[pin1]][2]);
-    
-    //pinMode(pin4, OUTPUT);
     digitalWrite(pin4, stepperSequence_2[steppers[pin1]][3]);
 
     // Delay to control speed of rotation
-    delayMicroseconds(sleep * 1000); // Adjust this delay as needed for your motor
+    delayMicroseconds(sleep); // Adjust this delay as needed for your motor
 
     //Serial.print(".");
   }
