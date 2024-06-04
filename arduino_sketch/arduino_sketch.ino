@@ -1,9 +1,9 @@
 // START OF EEPROM
 
-int debug_level = 2;    // 0 = None, 1 = Error, 2 = All
-int debug_serial = 1;   // Debug to serial or not
+int log_level = 2;    // 0 = None, 1 = Error, 2 = All
+int log_serial = 0;   // Debug to serial or not
 
-char* deviceName = "ESP32_1"; // Configure the Arduino name here
+char* deviceName = "UNO_1"; // Configure the Arduino name here
 char* ssid = "TPLINK01";
 char* password = "0652718161";
 
@@ -14,7 +14,6 @@ char* password = "0652718161";
 	#include <Servo.h>
 #elif defined(ESP32)
 	#include <WiFi.h>
-	#include "src/ESP32Servo.h"
 #else
 	#include <Servo.h>
 #endif
@@ -53,9 +52,10 @@ String pinOwner[48];
     for (int i = 0; i < 48; i++) {
       servos[i] = nullptr;
       steppers[i] = -1;
+      pinOwner[i] = "none";
     }
 
-    if (debug_serial) {
+    if (log_serial) {
       Serial.begin(115200);
     }
 
@@ -82,33 +82,37 @@ void loop() {
 	
 #else
 
-void receiveMessage(char* message) {
-  int index = 0;
+void receiveMessage(String& message) {
   while (true) {
   if (Serial.available()) {
     char c = Serial.read();
     if (c < 32 || c > 126) {
     break;
     }
-    message[index++] = c;
+    message += c;
   }
   }
-  message[index++] = 0;
 }
 
-void sendMessage(char* message) {
-  if (message[0] != 0) {
-  Serial.println(message);
+void sendMessage(String message) {
+  if (message != "") {
+    Serial.println(message);
   }
 }
 
 void setup() {
+  for (int i = 0; i < 48; i++) {
+    servos[i] = nullptr;
+    steppers[i] = -1;
+    pinOwner[i] = "none";
+  }
+
   Serial.begin(115200);
 }
 
 void loop() {
-  char message_in[50] = {0};
-  char message_out[50] = {0};
+  String message_in = "";
+  String message_out = "";
 
   receiveMessage(message_in);
   processMessage(message_in, message_out);
@@ -137,13 +141,13 @@ void processMessage(String message_in, String& message_out) {
     }
   }
 
-  if (debug_level > 0) {
-    String dbg = "=========== INCOMMING MESSAGE ===========\n";
+  if (log_level > 1) {
+    String dbg = "\nIncomming message:\n";
     dbg += ("numTokens: " + String(numTokens) + "\n");
     for (int i = 0; i < numTokens; i++) {
       dbg += (String(i) + " : " + tokens[i] + "\n");
     }
-    if (debug_serial == 1) {
+    if (log_serial == 1) {
       Serial.println(dbg);
     }
   }
@@ -159,9 +163,20 @@ void processMessage(String message_in, String& message_out) {
   }
   
   if (tokens[0] == "pinMode") {
-    // TODO: How to handle this function with the pin-owner checking?
     int pin = tokens[1].toInt();
     int value = tokens[2].toInt();
+
+    String id = (tokens[0] + "_" + String(pin));
+    if (pinOwner[pin] != id) {
+      if (log_level > 0) {
+        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
+        if (log_serial == 1) {
+          Serial.println(dbg);
+        }
+      }
+      pinOwner[pin] = id;
+    }
+
     pinMode(pin, value);
     
     message_out = "Ok";
@@ -171,15 +186,14 @@ void processMessage(String message_in, String& message_out) {
     int pin = tokens[1].toInt();
     int value = tokens[2].toInt();
 
-    String id = ("digitalWrite_" + String(pin));
+    String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
-      if (debug_level > 0) {
-        String dbg = "Pin " + String(pin) + " owner changed from pinOwner[pin] to " + id;
-          if (debug_serial == 1) {
+      if (log_level > 0) {
+        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
+        if (log_serial == 1) {
           Serial.println(dbg);
         }
       }
-
       pinOwner[pin] = id;
       pinMode(pin, OUTPUT);
     }
@@ -191,7 +205,19 @@ void processMessage(String message_in, String& message_out) {
 
   if (tokens[0] == "digitalRead") {
     int pin = tokens[1].toInt();
-    pinMode(pin, INPUT);
+
+    String id = (tokens[0] + "_" + String(pin));
+    if (pinOwner[pin] != id) {
+      if (log_level > 0) {
+        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
+        if (log_serial == 1) {
+          Serial.println(dbg);
+        }
+      }
+      pinOwner[pin] = id;
+      pinMode(pin, INPUT);
+    }
+
     int value = digitalRead(pin); 
 
     message_out = String(value);  // Convert int to String using String constructor
@@ -201,7 +227,18 @@ void processMessage(String message_in, String& message_out) {
     int pin = tokens[1].toInt();
     int value = tokens[2].toInt();
 
-    pinMode(pin, OUTPUT);
+    String id = (tokens[0] + "_" + String(pin));
+    if (pinOwner[pin] != id) {
+      if (log_level > 0) {
+        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
+        if (log_serial == 1) {
+          Serial.println(dbg);
+        }
+      }
+      pinOwner[pin] = id;
+      pinMode(pin, OUTPUT);
+    }
+
     analogWrite(pin, value); 
     
     message_out = "Ok";
@@ -209,8 +246,19 @@ void processMessage(String message_in, String& message_out) {
 
   if (tokens[0] == "analogRead") {
     int pin = tokens[1].toInt();
+    
+    String id = (tokens[0] + "_" + String(pin));
+    if (pinOwner[pin] != id) {
+      if (log_level > 0) {
+        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
+        if (log_serial == 1) {
+          Serial.println(dbg);
+        }
+      }
+      pinOwner[pin] = id;
+      pinMode(pin, INPUT);
+    }
 
-    pinMode(pin, INPUT);
     int value = analogRead(pin); 
 
     message_out = String(value);  // Convert int to String using String constructor
@@ -222,6 +270,17 @@ void processMessage(String message_in, String& message_out) {
 
     if (servos[pin] == nullptr ) {
       servos[pin] = new Servo();
+    }
+
+    String id = (tokens[0] + "_" + String(pin));
+    if (pinOwner[pin] != id) {
+      if (log_level > 0) {
+        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
+        if (log_serial == 1) {
+          Serial.println(dbg);
+        }
+      }
+      pinOwner[pin] = id;
       servos[pin]->attach(pin);
     }
 
@@ -230,46 +289,34 @@ void processMessage(String message_in, String& message_out) {
     message_out = "Ok";
   }
 
-  if (tokens[0] == "stepperWrite_1") {
-    int pin1 = tokens[1].toInt();
-    int pin2 = tokens[2].toInt();
-    int pin3 = tokens[3].toInt();
-    int pin4 = tokens[4].toInt();
+  if (tokens[0] == "stepperWrite_1" || tokens[0] == "stepperWrite_2") {
+    int pin[4] = {};
+
+    for (int i=0; i<4; i++) {
+      pin[i] = tokens[i+1].toInt();
+    }
+
     int steps = tokens[5].toInt();
     int sleep = tokens[6].toInt();
 
-    if (steppers[pin1] == -1) {
-      pinMode(pin1, OUTPUT);
-      pinMode(pin2, OUTPUT);
-      pinMode(pin3, OUTPUT);
-      pinMode(pin4, OUTPUT);   
+    for (int i=0; i<4; i++) {
+      String id = (tokens[0] + "_" + String(pin[0]) + "_" + String(pin[1]) + "_" + String(pin[2]) + "_" + String(pin[3]));
+      if (pinOwner[pin[i]] != id) {
+        if (log_level > 0) {
+          String dbg = "Pin " + String(pin[i]) + " owner changed from " + pinOwner[pin[i]] + " to " + id;
+          if (log_serial == 1) {
+            Serial.println(dbg);
+          }
+        }
+        pinOwner[pin[i]] = id;
+        pinMode(pin[i], OUTPUT);
 
-      steppers[pin1] = 0;
+        steppers[pin[0]] = 0;
+      }
     }
 
-    stepperWrite_1(pin1, pin2, pin3, pin4, steps, sleep);
-
-    message_out = "Ok";
-  }
-
-  if (tokens[0] == "stepperWrite_2") {
-    int pin1 = tokens[1].toInt();
-    int pin2 = tokens[2].toInt();
-    int pin3 = tokens[3].toInt();
-    int pin4 = tokens[4].toInt();
-    int steps = tokens[5].toInt();
-    int sleep = tokens[6].toInt();
-
-    if (steppers[pin1] == -1) {
-      pinMode(pin1, OUTPUT);
-      pinMode(pin2, OUTPUT);
-      pinMode(pin3, OUTPUT);
-      pinMode(pin4, OUTPUT);   
-
-      steppers[pin1] = 0;
-    }
-
-    stepperWrite_2(pin1, pin2, pin3, pin4, steps, sleep);
+    if (tokens[0] == "stepperWrite_1") stepperWrite_1(pin[0], pin[1], pin[2], pin[3], steps, sleep);
+    if (tokens[0] == "stepperWrite_2") stepperWrite_2(pin[0], pin[1], pin[2], pin[3], steps, sleep);
 
     message_out = "Ok";
   }

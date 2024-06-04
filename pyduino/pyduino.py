@@ -48,7 +48,7 @@ class PyDuino:
 
         # Get list of available COM ports and add them to candidates
         ports = [port.device for port in serial.tools.list_ports.comports()]
-        candidates += ports
+        all_ips.extend(ports)
 
         # Validate candidates using multithreading and a thread-safe queue
         available = queue.Queue()
