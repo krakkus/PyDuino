@@ -1,7 +1,7 @@
 // START OF EEPROM
 
 int log_level = 2;    // 0 = None, 1 = Error, 2 = All
-int log_serial = 0;   // Debug to serial or not
+int log_serial = 1;   // Debug to serial or not
 
 char* deviceName = "UNO_1"; // Configure the Arduino name here
 char* ssid = "TPLINK01";
@@ -42,9 +42,13 @@ String pinOwner[48];
     }
   }
 
-  void sendMessage(WiFiClient client, String& message) {
+  void sendMessage(WiFiClient client, String message, String log) {
     if (message.length() > 0) {
       client.println(message);
+    }
+
+    if (log_serial == 1) {
+      Serial.println(dbg);
     }
   }
 
@@ -71,11 +75,12 @@ void loop() {
   if (client) {
     while (client.connected()) {
       String message_in = "";
+      String message_log = "";
       String message_out = "";
 
       receiveMessage(client, message_in);
-      processMessage(message_in, message_out);
-      sendMessage(client, message_out);
+      processMessage(message_in, message_out, message_log);
+      sendMessage(client, message_out, message_log);
     }
   }
 }
@@ -94,9 +99,13 @@ void receiveMessage(String& message) {
   }
 }
 
-void sendMessage(String message) {
+void sendMessage(String message, String log) {
   if (message != "") {
     Serial.println(message);
+  }
+
+  if (log_serial == 1) {
+      Serial.println(dbg);
   }
 }
 
@@ -112,16 +121,17 @@ void setup() {
 
 void loop() {
   String message_in = "";
+  String message_log = "";
   String message_out = "";
 
   receiveMessage(message_in);
-  processMessage(message_in, message_out);
-  sendMessage(message_out);
+  processMessage(message_in, message_out, message_log);
+  sendMessage(message_out, message_log);
 }
 #endif
 
 
-void processMessage(String message_in, String& message_out) {
+void processMessage(String message_in, String& message_out, String& message_log) {
   message_out = "";  // Clear the output message
 
   String tokens[10];
@@ -142,17 +152,14 @@ void processMessage(String message_in, String& message_out) {
   }
 
   if (log_level > 1) {
-    String dbg = "\nIncomming message:\n";
-    dbg += ("numTokens: " + String(numTokens) + "\n");
+    log += "\nIncomming message:\n";
+    log += ("numTokens: " + String(numTokens) + "\n");
     for (int i = 0; i < numTokens; i++) {
-      dbg += (String(i) + " : " + tokens[i] + "\n");
-    }
-    if (log_serial == 1) {
-      Serial.println(dbg);
+      log += (String(i) + " : " + tokens[i] + "\n");
     }
   }
 
-  if (tokens[0] == nullptr) {
+  if (tokens[0] == "") {
     message_out = "Error";
     return;
   }
@@ -169,10 +176,7 @@ void processMessage(String message_in, String& message_out) {
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
-        if (log_serial == 1) {
-          Serial.println(dbg);
-        }
+        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
     }
@@ -189,10 +193,7 @@ void processMessage(String message_in, String& message_out) {
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
-        if (log_serial == 1) {
-          Serial.println(dbg);
-        }
+        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, OUTPUT);
@@ -209,10 +210,7 @@ void processMessage(String message_in, String& message_out) {
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
-        if (log_serial == 1) {
-          Serial.println(dbg);
-        }
+        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, INPUT);
@@ -230,10 +228,7 @@ void processMessage(String message_in, String& message_out) {
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
-        if (log_serial == 1) {
-          Serial.println(dbg);
-        }
+        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, OUTPUT);
@@ -250,10 +245,7 @@ void processMessage(String message_in, String& message_out) {
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
-        if (log_serial == 1) {
-          Serial.println(dbg);
-        }
+        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, INPUT);
@@ -275,10 +267,7 @@ void processMessage(String message_in, String& message_out) {
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        String dbg = "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id;
-        if (log_serial == 1) {
-          Serial.println(dbg);
-        }
+        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       servos[pin]->attach(pin);
@@ -303,10 +292,7 @@ void processMessage(String message_in, String& message_out) {
       String id = (tokens[0] + "_" + String(pin[0]) + "_" + String(pin[1]) + "_" + String(pin[2]) + "_" + String(pin[3]));
       if (pinOwner[pin[i]] != id) {
         if (log_level > 0) {
-          String dbg = "Pin " + String(pin[i]) + " owner changed from " + pinOwner[pin[i]] + " to " + id;
-          if (log_serial == 1) {
-            Serial.println(dbg);
-          }
+          log += "Pin " + String(pin[i]) + " owner changed from " + pinOwner[pin[i]] + " to " + id + "\n";
         }
         pinOwner[pin[i]] = id;
         pinMode(pin[i], OUTPUT);
