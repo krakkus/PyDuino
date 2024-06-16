@@ -3,7 +3,7 @@
 int log_level = 2;    // 0 = None, 1 = Error, 2 = All
 int log_serial = 1;   // Debug to serial or not
 
-char* deviceName = "UNO_1"; // Configure the Arduino name here
+char* deviceName = "ESP32_1"; // Configure the Arduino name here
 char* ssid = "TPLINK01";
 char* password = "0652718161";
 
@@ -11,14 +11,15 @@ char* password = "0652718161";
 
 #if defined(ESP8266)
 	#include <ESP8266WiFi.h>
-	#include <Servo.h>
+	//#include <Servo.h>
 #elif defined(ESP32)
 	#include <WiFi.h>
+	//#include <ESP32Servo.h>
 #else
-	#include <Servo.h>
+	//#include <Servo.h>
 #endif
 
-Servo* servos[48] = {};
+//Servo* servos[48] = {};
 int steppers[48] = {};
 String pinOwner[48];
 
@@ -48,13 +49,13 @@ String pinOwner[48];
     }
 
     if (log_serial == 1) {
-      Serial.println(dbg);
+      Serial.println(log);
     }
   }
 
 	void setup() {
     for (int i = 0; i < 48; i++) {
-      servos[i] = nullptr;
+      //servos[i] = nullptr;
       steppers[i] = -1;
       pinOwner[i] = "none";
     }
@@ -111,7 +112,7 @@ void sendMessage(String message, String log) {
 
 void setup() {
   for (int i = 0; i < 48; i++) {
-    servos[i] = nullptr;
+    //servos[i] = nullptr;
     steppers[i] = -1;
     pinOwner[i] = "none";
   }
@@ -152,10 +153,10 @@ void processMessage(String message_in, String& message_out, String& message_log)
   }
 
   if (log_level > 1) {
-    log += "\nIncomming message:\n";
-    log += ("numTokens: " + String(numTokens) + "\n");
+    message_log += "\nIncomming message:\n";
+    message_log += ("numTokens: " + String(numTokens) + "\n");
     for (int i = 0; i < numTokens; i++) {
-      log += (String(i) + " : " + tokens[i] + "\n");
+      message_log += (String(i) + " : " + tokens[i] + "\n");
     }
   }
 
@@ -176,7 +177,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
+        message_log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
     }
@@ -193,7 +194,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
+        message_log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, OUTPUT);
@@ -210,7 +211,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
+        message_log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, INPUT);
@@ -228,7 +229,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
+        message_log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, OUTPUT);
@@ -245,7 +246,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
+        message_log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       pinMode(pin, INPUT);
@@ -255,7 +256,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
 
     message_out = String(value);  // Convert int to String using String constructor
   }
-
+/*
   if (tokens[0] == "servoWrite") {
     int pin = tokens[1].toInt();
     int value = tokens[2].toInt();
@@ -267,7 +268,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
     String id = (tokens[0] + "_" + String(pin));
     if (pinOwner[pin] != id) {
       if (log_level > 0) {
-        log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
+        message_log += "Pin " + String(pin) + " owner changed from " + pinOwner[pin] + " to " + id + "\n";
       }
       pinOwner[pin] = id;
       servos[pin]->attach(pin);
@@ -277,7 +278,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
 
     message_out = "Ok";
   }
-
+*/
   if (tokens[0] == "stepperWrite_1" || tokens[0] == "stepperWrite_2") {
     int pin[4] = {};
 
@@ -292,7 +293,7 @@ void processMessage(String message_in, String& message_out, String& message_log)
       String id = (tokens[0] + "_" + String(pin[0]) + "_" + String(pin[1]) + "_" + String(pin[2]) + "_" + String(pin[3]));
       if (pinOwner[pin[i]] != id) {
         if (log_level > 0) {
-          log += "Pin " + String(pin[i]) + " owner changed from " + pinOwner[pin[i]] + " to " + id + "\n";
+          message_log += "Pin " + String(pin[i]) + " owner changed from " + pinOwner[pin[i]] + " to " + id + "\n";
         }
         pinOwner[pin[i]] = id;
         pinMode(pin[i], OUTPUT);

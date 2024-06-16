@@ -8,21 +8,24 @@ devices = PyDuino.FindAll()
 for k, v in devices.items():
     print(k, v.address)
 
-my_esp = devices['UNO_1']
+my_esp = devices['ESP32_1']
 
 # Loop forever
 while True:
 
-    # Turn the lamp off
-    my_esp.digitalWrite(13, 1)
-    print("Inverter turned on")
+    # Turn motor one way
+    my_esp.digitalWrite(2, 0)
+    my_esp.digitalWrite(4, 1)
+    print("GPIO_2 OFF & GPIO_4 ON\n")
 
-    # Wait 5 seconds
-    time.sleep(1)
+    # Wait 2 seconds
+    time.sleep(2)
 
-    # Turn the lamp on
-    my_esp.digitalWrite(13, 0)
-    print("Inverter turned off")
+    # Turn motor other way
+    my_esp.digitalWrite(2, 1)
+    my_esp.digitalWrite(4, 0)
 
-    # Wait 5 seconds
-    time.sleep(1)
+    print("GPIO_2 ON & GPIO_4 OFF\n")
+
+    # Wait 2 seconds
+    time.sleep(2)
