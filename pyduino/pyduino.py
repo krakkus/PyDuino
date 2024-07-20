@@ -81,7 +81,7 @@ class PyDuino:
                 if data.startswith('Ok'):
                     pyduino.name = data.split(',', 1)[1]
                     available.put(pyduino)
-            except socket.timeout:
+            except (socket.timeout, ConnectionRefusedError):
                 pass
 
         # Validate COM ports

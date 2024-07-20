@@ -3,7 +3,7 @@
 int log_level = 2;    // 0 = None, 1 = Error, 2 = All
 int log_serial = 1;   // Debug to serial or not
 
-char* deviceName = "ESP32_1"; // Configure the Arduino name here
+char* deviceName = "ESP32_HATCH"; // Configure the Arduino name here
 char* ssid = "TPLINK01";
 char* password = "0652718161";
 
@@ -11,21 +11,17 @@ char* password = "0652718161";
 
 #if defined(ESP8266)
 	#include <ESP8266WiFi.h>
-	//#include <Servo.h>
 #elif defined(ESP32)
 	#include <WiFi.h>
-	//#include <ESP32Servo.h>
-#else
-	//#include <Servo.h>
 #endif
 
-//Servo* servos[48] = {};
 int steppers[48] = {};
 String pinOwner[48];
 
 #if defined(ESP8266) || defined(ESP32)
 
 	WiFiServer server(8266); // Create a server instance on port 8266
+  IPAddress ip;
 
   void receiveMessage(WiFiClient client, String& message) {
     while (client.connected()) {
@@ -55,25 +51,41 @@ String pinOwner[48];
 
 	void setup() {
     for (int i = 0; i < 48; i++) {
-      //servos[i] = nullptr;
       steppers[i] = -1;
       pinOwner[i] = "none";
     }
 
-    if (log_serial) {
-      Serial.begin(115200);
-    }
+    Serial.begin(115200);
 
-	  WiFi.begin(ssid, password); // Connect to the WiFi network
-	  while (WiFi.status() != WL_CONNECTED) {
-		delay(1000);
-	  }
-	  server.begin(); // Start the server
+    WiFi.begin(ssid, password); // Replace with your WiFi credentials
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.println("Connecting to WiFi...");
+    }
+    Serial.println("Connected to the WiFi network");
+    ip = WiFi.localIP();
+    Serial.print("IP Address: ");
+    Serial.println(ip);
+
+    server.begin();
 	}
 
 void loop() {
   WiFiClient client = server.available(); // Check for incoming client connections
   if (client) {
+      // Print basic connection information
+      Serial.print("Client connected from IP: ");
+      Serial.println(client.remoteIP());
+    
+      // Optionally print additional details (may require library-specific functions)
+      #ifdef USE_ETHERNET_LIBRARY // Check for Ethernet library availability
+      if (client.connected()) {
+        // Example with Ethernet library (replace with specific functions if using WiFi library)
+        uint16_t remotePort = client.remotePort();
+        Serial.print("Client remote port: ");
+        Serial.println(remotePort);
+      }
+      #endif
     while (client.connected()) {
       String message_in = "";
       String message_log = "";
