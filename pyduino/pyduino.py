@@ -4,6 +4,7 @@ import serial
 import serial.tools.list_ports
 import threading
 import queue
+import ifaddr
 
 TIMEOUT = 1
 
@@ -23,12 +24,22 @@ class PyDuino:
         self.name = name
 
     @staticmethod
+    def get_ip_addresses():
+        """
+        This function retrieves all IP addresses associated with network adapters.
+        """
+        addresses = []
+        for adapter in ifaddr.get_adapters():
+            addresses.append(adapter.ips[0].ip)
+        return addresses
+    @staticmethod
     def FindAll(target_ip=None):
         all_ips = []
 
         # Get all network interfaces
-        for interface in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
-            address = interface[4][0]
+
+        for address in PyDuino.get_ip_addresses():
+            # print(address)
 
             if not address.startswith('fe80:'):
                 # Extract IP address and subnet
@@ -46,9 +57,9 @@ class PyDuino:
             target_candidates = [target_subnet + str(i) for i in range(1, 255)]
             all_ips.extend(target_candidates)
 
-        # Get list of available COM ports and add them to candidates
-        ports = [port.device for port in serial.tools.list_ports.comports()]
-        all_ips.extend(ports)
+        # # Get list of available COM ports and add them to candidates
+        # ports = [port.device for port in serial.tools.list_ports.comports()]
+        # all_ips.extend(ports)
 
         # Validate candidates using multithreading and a thread-safe queue
         available = queue.Queue()

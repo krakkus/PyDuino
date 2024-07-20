@@ -8,20 +8,20 @@ devices = PyDuino.FindAll()
 for k, v in devices.items():
     print(k, v.address)
 
-my_esp = devices['ESP32_1']
+my_esp = devices['ESP32_HATCH']
 
 # Loop forever
 while True:
 
     # Turn the lamp off
-    my_esp.digitalWrite(2, 0)
+    my_esp.digitalWrite(2, 1)
     print("Light turned on")
 
     # Wait 5 seconds
     time.sleep(5)
 
     # Turn the lamp on
-    my_esp.digitalWrite(2, 1)
+    my_esp.digitalWrite(2, 0)
     print("Light turned off")
 
     # Wait 5 seconds
