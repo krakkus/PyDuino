@@ -1,0 +1,39 @@
+body {
+    font-family: Verdana, sans-serif;
+    background-color: #222;
+    color: #fff;
+    margin: 0px;
+}
+
+.content {
+    margin-left: 50px;
+}
+
+h1 {
+    background-color: #444;
+    padding: 30px;
+    padding-left: 60px;
+    margin-top: 0px;
+}
+
+.nav-button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+img {
+  max-width: 90%;
+}
+
+.invisible-grid {
+  border-collapse: collapse;
+  border: none;
+}

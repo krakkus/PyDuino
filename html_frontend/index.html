@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP32 DEV KIT V1</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <h1>ESP32 DEV KIT V1</h1>
+  <p class="content">
+  <button id="button-setup" class="nav-button">Setup</button>
+  <button id="button-control" class="nav-button">Control</button>
+  <button id="button-info" class="nav-button">Info</button>
+  </p>
+  <br>
+  <p id="dynamic-main" class="content"></p>
+  <script>
+    const button1 = document.getElementById('button-setup');
+    const button2 = document.getElementById('button-control');
+    const button3 = document.getElementById('button-info');
+
+    const dynamicMain = document.getElementById('dynamic-main');
+
+    button1.addEventListener('click', () => {
+      url = '/index_setup.html';
+      load_dynamic('dynamic-main', url);
+    });
+
+    button2.addEventListener('click', () => {
+      url = '/index_control.html';
+      load_dynamic('dynamic-main', url);
+    });
+
+    button3.addEventListener('click', () => {
+      url = '/index_info.html';
+      load_dynamic('dynamic-main', url);
+    });
+
+    function load_dynamic(id, url) {
+      const paragraph = document.getElementById(id);
+
+      fetch(url)
+        .then(response => response.text())
+        .then(html => {
+          // Now you have the HTML content as a string
+          paragraph.innerHTML = html; // Or use other DOM manipulation methods
+          
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+
+          const scriptElement = tempDiv.querySelector('script');
+          if (scriptElement) {
+            const scriptContent = scriptElement.textContent;
+            console.log(scriptContent);
+            eval(scriptContent);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          paragraph.textContent = 'An error occurred while loading content.';
+        });
+    }
+  </script>
+</body>
+
+</html>
