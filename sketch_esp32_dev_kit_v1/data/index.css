@@ -1,3 +1,8 @@
+html, body {
+    width: 480px;
+    margin: 0 auto;
+}
+
 body {
     font-family: Verdana, sans-serif;
     background-color: #222;
@@ -16,6 +21,23 @@ h1 {
     margin-top: 0px;
 }
 
+h2 {
+    color: yellow;
+}
+
+label{
+    display: inline-block;
+    float: left;
+    clear: left;
+    width: 75px;
+    text-align: left;
+}
+
+input {
+  display: inline-block;
+  float: left;
+}
+
 .nav-button {
   background-color: #4CAF50; /* Green */
   border: none;
@@ -27,6 +49,21 @@ h1 {
   font-size: 16px;
   margin: 4px 2px;
   cursor: pointer;
+}
+
+.action-button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+
+  margin: 2px;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 img {

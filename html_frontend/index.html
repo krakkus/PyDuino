@@ -3,7 +3,6 @@
 <head>
   <title>ESP32 DEV KIT V1</title>
   <link rel="stylesheet" href="index.css">
-  <script src="index.js"></script> </head>
 </head>
 <body>
   <h1>ESP32 DEV KIT V1</h1>
@@ -13,27 +12,24 @@
   <button id="button-info" class="nav-button">Info</button>
   </p>
   <br>
-  <p id="dynamic-main" class="content"></p>
   <script>
     const button1 = document.getElementById('button-setup');
     const button2 = document.getElementById('button-control');
     const button3 = document.getElementById('button-info');
 
-    const dynamicMain = document.getElementById('dynamic-main');
-
     button1.addEventListener('click', () => {
       url = '/index_setup.html';
-      load_dynamic('dynamic-main', url);
+      window.location = url;
     });
 
     button2.addEventListener('click', () => {
       url = '/index_control.html';
-      load_dynamic('dynamic-main', url);
+      window.location = url;
     });
 
     button3.addEventListener('click', () => {
       url = '/index_info.html';
-      load_dynamic('dynamic-main', url);
+      window.location = url;
     });
   </script>
 </body>

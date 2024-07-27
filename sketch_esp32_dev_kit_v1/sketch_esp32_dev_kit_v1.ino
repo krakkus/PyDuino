@@ -3,9 +3,10 @@
 #include <SPIFFS.h>
 
 const char* ssid = "TPLINK01";//"your_ssid"; // Replace with your SSID
-const char* password = "0652718161";//your_password"; // Replace with your password
-const char* ap_ssid = "ESP32_AP"; // Access point SSID
-const char* ap_password = "your_ap_password"; // Access point password
+const char* password = "Welkom01!";//your_password"; // Replace with your password
+
+const char* ap_ssid = "MY_ESP32"; // Access point SSID
+const char* ap_password = "password"; // Access point password
 
 String wl_status_to_string(wl_status_t status) {
   switch (status) {
@@ -114,9 +115,33 @@ const size_t chunkSize = 1024; // Adjust chunk size as needed
 char buffer[chunkSize + 1]; // +1 for null terminator
 
 void servePage(WiFiClient client, String filePath) {
+  if (filePath == "/") filePath = "/index.html";
+
+  String prefix = filePath.substring(1, 4);
+
+  if (prefix == "dyn") {
+    String content = getDynamicPage(client, filePath);
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/html");
+    client.print("Content-Length: ");
+    client.println(content.length());
+    client.println(); // Extra blank line
+    client.print(content);
+    return;
+  }
+
+  if (prefix == "api") {
+    return;
+  }
+
   File file = SPIFFS.open(filePath, "r");
-  if (!file) {
+  if (file.size() == 0) {
     Serial.println("Failed to open file: " + filePath + " for reading");
+
+    client.println("HTTP/1.1 404 File not found");
+    client.println("Content-Type: text/plain");
+    client.println();
+    client.println("File not found error for: " + filePath);
     return;
   }
 
@@ -127,7 +152,7 @@ void servePage(WiFiClient client, String filePath) {
 
   client.println("HTTP/1.1 200 OK");
   client.println("Content-Type: " + ctt);
-  
+
   // Get file size for Content-Length header
   size_t fileSize = file.size();
   client.print("Content-Length: ");
