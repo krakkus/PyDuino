@@ -1,5 +1,6 @@
 html, body {
     width: 480px;
+    height: 100%;
     margin: 0 auto;
 }
 
@@ -10,8 +11,11 @@ body {
     margin: 0px;
 }
 
-.content {
-    margin-left: 50px;
+iframe {
+    width: 480px;
+    border-width: 1px;
+    border-color: grey;
+    //border: none;
 }
 
 h1 {
@@ -19,23 +23,6 @@ h1 {
     padding: 30px;
     padding-left: 60px;
     margin-top: 0px;
-}
-
-h2 {
-    color: yellow;
-}
-
-label{
-    display: inline-block;
-    float: left;
-    clear: left;
-    width: 75px;
-    text-align: left;
-}
-
-input {
-  display: inline-block;
-  float: left;
 }
 
 .nav-button {

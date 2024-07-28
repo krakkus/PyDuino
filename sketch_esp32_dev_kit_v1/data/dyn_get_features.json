@@ -1,0 +1,10 @@
+[
+  {
+    "id": "BuiltInLED",
+    "type": "digital_output"
+  },
+  {
+    "id": "Door sensor",
+    "type": "digital_input"
+  }
+]

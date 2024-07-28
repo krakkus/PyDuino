@@ -14,33 +14,50 @@
   <h2>Connectivity</h2>
   <iframe src="dyn_cfg_wifi.html" height="400"></iframe>
   <h2>Features</h2>
+    <form>
+    <label for="type">Create a new feature:</label>
+    <select id="type" class="action-button">
+      <option value="digital_output">Digital output</option>
+      <option value="digital_input">Digital input</option>
+    </select>
+
+    <button type="button" class="action-button">Create</button>
+  </form>
+  <br>
+
   <div id="iframe-container"></div>
 
   <script>
-    const baseUrl = 'https://your-base-url/'; // Replace with your actual base URL
     const typeHeights = {
-      type1: 300,
-      type2: 200,
-      // ... other types and their corresponding heights
+      digital_output: 250,
+      digital_input: 250,
     };
 
-    const featureList = [
-      { id: 'feature1', type: 'type1' },
-      { id: 'feature2', type: 'type2' },
-      // ... other features
-    ];
+    function fetchFeatureList() {
+      fetch("/dyn_get_features.json") // Assuming the endpoint is '/features'
+        .then(response => response.json())
+        .then(data => {
+          // Handle the fetched feature data here
+          //console.log(data); // For debugging
+          data.forEach(createIframe);
+        })
+        .catch(error => {
+          console.error('Error fetching feature list:', error);
+          // Handle errors, e.g., display an error message
+        });
+    }
 
     function createIframe(feature) {
       const iframe = document.createElement('iframe');
       iframe.id = `iframe-${feature.id}`;
-      iframe.src = baseUrl + feature.id;
+      //iframe.src = baseUrl + feature.id;
       iframe.style.height = typeHeights[feature.type] + 'px'; // Adjust height based on type
       iframe.style.width = '100%'; // Or set a specific width
       document.getElementById('iframe-container').appendChild(iframe);
     }
 
     // Iterate through the feature list and create iframes
-    featureList.forEach(createIframe);
+    fetchFeatureList();
 
   </script>
 

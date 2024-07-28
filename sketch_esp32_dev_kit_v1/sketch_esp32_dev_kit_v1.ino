@@ -61,7 +61,7 @@ void setup() {
   }
 }
 
-String requestLine;
+String request;
 
 void loop() {
   WiFiClient client = server.available(); // Check for incoming client connections
@@ -71,40 +71,27 @@ void loop() {
         char c = client.read();
         // Build a string to store the request line
         if (c != '\n') {
-          requestLine += c;
+          request += c;
         }
 
         // Check if the request line is complete (ends with \r\n)
         if (c == '\n') {
-          Serial.println(requestLine);
+          Serial.println(request);
 
-          String tokens[2];
-          int idx_from = 0;
-          int idx_to = 0;
+          String method = getStringBefore(request, ' ');
+          request = getStringAfter(request, ' ');
+          String url = getStringBefore(request, ' ');
 
-          idx_to = requestLine.indexOf(' ', idx_from);
-          tokens[0] = requestLine.substring(idx_from, idx_to);
-          //Serial.println(tokens[0]);
-
-          idx_from = idx_to + 1;
-
-          idx_to = requestLine.indexOf(' ', idx_from);
-          tokens[1] = requestLine.substring(idx_from, idx_to);
-          //Serial.println(tokens[1]);
-
-          if (tokens[0] == "GET") {
-            servePage(client, tokens[1]);
+          if (method == "GET" || method == "POST") {
+            servePage(client, url);
           }
           else {
-            client.println("HTTP/1.1 500 Internal Server Error");
-            client.println("Content-Type: text/plain");
-            client.println();
-            client.println("An internal server error occurred.");
+            respond(client, 500, "text/plain", "An internal server error occurred.");
           }
 
           // Clear the request line for the next request
           client.stop();
-          requestLine = "";
+          request = "";
         }
       }
     }
@@ -114,19 +101,23 @@ void loop() {
 const size_t chunkSize = 1024; // Adjust chunk size as needed
 char buffer[chunkSize + 1]; // +1 for null terminator
 
-void servePage(WiFiClient client, String filePath) {
-  if (filePath == "/") filePath = "/index.html";
+void servePage(WiFiClient client, String url) {
+  String path = getStringBefore(url, '?');
+  String parameters = getStringAfter(url, '?');
 
-  String prefix = filePath.substring(1, 4);
+  if (path == "/") path = "/index.html";
 
+  String ctt = "text/html";
+  if (path.endsWith(".jpg")) ctt = "image/jpeg";
+  if (path.endsWith(".js")) ctt = "text/javascript";
+  if (path.endsWith(".css")) ctt = "text/css";
+  if (path.endsWith(".json")) ctt = "application/json";
+  if (path.endsWith(".ico")) ctt = "image/x-icon";
+  
+  String prefix = path.substring(1, 4);
   if (prefix == "dyn") {
-    String content = getDynamicPage(client, filePath);
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/html");
-    client.print("Content-Length: ");
-    client.println(content.length());
-    client.println(); // Extra blank line
-    client.print(content);
+    String content = getDynamicPage(client, path, parameters);
+    respond(client, 200, ctt, content);
     return;
   }
 
@@ -134,21 +125,13 @@ void servePage(WiFiClient client, String filePath) {
     return;
   }
 
-  File file = SPIFFS.open(filePath, "r");
+  File file = SPIFFS.open(path, "r");
   if (file.size() == 0) {
-    Serial.println("Failed to open file: " + filePath + " for reading");
-
-    client.println("HTTP/1.1 404 File not found");
-    client.println("Content-Type: text/plain");
-    client.println();
-    client.println("File not found error for: " + filePath);
+    Serial.println("Failed to open file: " + path + " for reading");
+    String content = "File not found error for: " + path;
+    respond(client, 404, "text/plain", content);
     return;
   }
-
-  String ctt = "text/html";
-  if (filePath.endsWith(".jpg")) ctt = "image/jpeg";
-  if (filePath.endsWith(".js")) ctt = "text/javascript";
-  if (filePath.endsWith(".css")) ctt = "text/css";
 
   client.println("HTTP/1.1 200 OK");
   client.println("Content-Type: " + ctt);
