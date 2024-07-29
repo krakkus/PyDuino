@@ -1,6 +1,6 @@
 #include <WiFi.h>
-#include <regex.h>
-#include <SPIFFS.h>
+//#include <SPIFFS.h>
+#include <LittleFS.h>
 
 const char* ssid = "TPLINK01";//"your_ssid"; // Replace with your SSID
 const char* password = "Welkom01!";//your_password"; // Replace with your password
@@ -39,6 +39,8 @@ void setup() {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("Connected to network, SSID: " + String(ssid));
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
   }
   else
   {
@@ -47,14 +49,13 @@ void setup() {
     WiFi.mode(WIFI_AP); // Set mode to access point
     WiFi.softAP(ap_ssid, ap_password);
     Serial.println("Access point started, SSID: " + String(ap_ssid));
+    Serial.print("Access point IP Address: ");
+    Serial.println(WiFi.softAPIP());
   }
-
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 
   server.begin();
 
-  if (!SPIFFS.begin(true)) {
+  if(!LittleFS.begin()){
     Serial.println("An Error has occurred while mounting SPIFFS");
   } else {
     Serial.println("SPIFFS mounted succesfully!");
@@ -113,7 +114,7 @@ void servePage(WiFiClient client, String url) {
   if (path.endsWith(".css")) ctt = "text/css";
   if (path.endsWith(".json")) ctt = "application/json";
   if (path.endsWith(".ico")) ctt = "image/x-icon";
-  
+
   String prefix = path.substring(1, 4);
   if (prefix == "dyn") {
     String content = getDynamicPage(client, path, parameters);
@@ -125,7 +126,7 @@ void servePage(WiFiClient client, String url) {
     return;
   }
 
-  File file = SPIFFS.open(path, "r");
+  File file = LittleFS.open(path, "r");
   if (file.size() == 0) {
     Serial.println("Failed to open file: " + path + " for reading");
     String content = "File not found error for: " + path;

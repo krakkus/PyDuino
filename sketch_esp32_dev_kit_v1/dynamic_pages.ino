@@ -27,7 +27,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       </html>
       )";
 
-    File file = SPIFFS.open("/features.txt", "r");
+    File file = LittleFS.open("/features.txt", "r");
     String line = file.readStringUntil('\n');
     file.close();
 
@@ -52,7 +52,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       ]
       )";
 
-    File file = SPIFFS.open("/features.txt", "r");
+    File file = LittleFS.open("/features.txt", "r");
     while (true) {
       String line = file.readStringUntil('\n');
       if (line.length() == 0) {
