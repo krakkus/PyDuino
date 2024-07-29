@@ -9,19 +9,16 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
         <link rel="stylesheet" href="iframe.css">
       </head>
       <body>
-          <h3>Devicename</h3>
           <form>
+              <h3>Devicename</h3>
               <label for="name">Name:</label>
-              <input type="text" id="name" name="name"><br><br>
-              <input type="submit" value="Save" class="action-button">
-          </form>
-          <br><br><br>
-          <h3>WiFi credentials</h3>
-          <form>
+              <input type="text" id="name" name="name" value="$ID"><br><br>
+              <br>
+              <h3>WiFi credentials</h3>
               <label for="ssid">SSID:</label>
-              <input type="text" id="ssid" name="ssid"><br><br>
+              <input type="text" id="ssid" name="ssid" value="$SSID"><br><br>
               <label for="password">Password:</label>
-              <input type="password" id="password" name="password"><br><br>
+              <input type="password" id="password" name="password" value="$PWD"><br><br><br>
               <input type="submit" value="Save" class="action-button">
           </form>
         <br>
@@ -29,22 +26,61 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       
       </html>
       )";
-  }
-  
-  if (path == "/dyn_get_features.json") {
-    content = R"(
-      [
-        {
-          "id": "BuiltInLED",
-          "type": "digital_output"
-        },
-        {
-          "id": "Door sensor",
-          "type": "digital_input"
-        }
-      ]
-      )";
+
+    File file = SPIFFS.open("/features.txt", "r");
+    String line = file.readStringUntil('\n');
+    file.close();
+
+    String id = getStringBefore(line, ' ');
+    content.replace("$ID", id);
+    line = getStringAfter(line, ' ');
+
+    String ssid = getStringBefore(line, ' ');
+    content.replace("$SSID", ssid);
+    line = getStringAfter(line, ' ');
+
+    String pwd = getStringBefore(line, ' ');
+    content.replace("$PWD", pwd);
+
   }
 
+
+  if (path == "/dyn_get_features.json") {
+    String content = R"(
+      [
+        $ITEM
+      ]
+      )";
+
+    File file = SPIFFS.open("/features.txt", "r");
+    while (true) {
+      String line = file.readStringUntil('\n');
+      if (line.length() == 0) {
+        file.close(); // Close the file when done
+        break; // Exit the loop
+      } else {
+        String item = R"(
+        {
+          "id": "$ID",
+          "type": "$TYPE"
+        }, $ITEM)";
+
+        String id = getStringBefore(line, ' ');
+        line = getStringAfter(line, ' ');
+        String type = getStringBefore(line, ' ');
+
+        item.replace("$ID", id);
+        item.replace("$TYPE", type);
+
+        content.replace("$ITEM", item);
+      }
+    }
+    file.close();
+
+    content.replace("$ITEM", "");
+    content.replace(", $ITEM", "");
+  }
+
+  // Return the final content
   return content;
 }
