@@ -1,6 +1,38 @@
 String getDynamicPage(WiFiClient client, String path, String parameters) {
   String content;
 
+  if (path == "/dyn_cfg_wifi_save.html") {
+    content = R"(
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link rel="stylesheet" href="iframe.css">
+      </head>
+      <body>
+      WiFi credentials have been saved!
+      </body>
+      </html>
+      )";
+
+    while (parameters.length() > 0) {
+      String kv = getStringBefore(parameters, '&');
+      parameters = getStringAfter(parameters, '&');
+
+      String k = getStringBefore(kv, '=');
+      String v = getStringAfter(kv, '=');
+
+      if (k == "name") id = v;
+      if (k == "ssid") ssid = v;
+      if (k == "password") password = v;
+    }
+
+    String cred = id + " " + ssid + " " + password;
+
+    File file = LittleFS.open("/credentials.txt", "w");
+    file.println(cred);
+    file.close();
+  }
+
   if (path == "/dyn_cfg_wifi.html") {
     content = R"(
       <!DOCTYPE html>
@@ -9,7 +41,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
         <link rel="stylesheet" href="iframe.css">
       </head>
       <body>
-          <form>
+          <form action="/dyn_cfg_wifi_save.html">
               <h3>Devicename</h3>
               <label for="name">Name:</label>
               <input type="text" id="name" name="name" value="$ID"><br><br>
@@ -27,21 +59,9 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       </html>
       )";
 
-    File file = LittleFS.open("/features.txt", "r");
-    String line = file.readStringUntil('\n');
-    file.close();
-
-    String id = getStringBefore(line, ' ');
     content.replace("$ID", id);
-    line = getStringAfter(line, ' ');
-
-    String ssid = getStringBefore(line, ' ');
     content.replace("$SSID", ssid);
-    line = getStringAfter(line, ' ');
-
-    String pwd = getStringBefore(line, ' ');
-    content.replace("$PWD", pwd);
-
+    content.replace("$PWD", password);
   }
 
 

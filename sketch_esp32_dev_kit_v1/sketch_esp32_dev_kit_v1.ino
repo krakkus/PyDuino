@@ -2,8 +2,9 @@
 //#include <SPIFFS.h>
 #include <LittleFS.h>
 
-const char* ssid = "TPLINK01";//"your_ssid"; // Replace with your SSID
-const char* password = "Welkom01!";//your_password"; // Replace with your password
+String id = "";
+String ssid = "";
+String password = "";
 
 const char* ap_ssid = "MY_ESP32"; // Access point SSID
 const char* ap_password = "password"; // Access point password
@@ -25,6 +26,22 @@ WiFiServer server(80);
 
 void setup() {
   Serial.begin(115200);
+
+  if (!LittleFS.begin()) {
+    Serial.println("An Error has occurred while mounting SPIFFS");
+  } else {
+    Serial.println("LittleFS mounted succesfully!");
+
+    File file = LittleFS.open("/credentials.txt", "r");
+    String line = file.readStringUntil('\n');
+    file.close();
+
+    id = getStringBefore(line, ' ');
+    line = getStringAfter(line, ' ');
+    ssid = getStringBefore(line, ' ');
+    line = getStringAfter(line, ' ');
+    password = getStringBefore(line, ' ');
+  }
 
   WiFi.mode(WIFI_STA); // Set mode to station (connect to an existing network)
   WiFi.begin(ssid, password);
@@ -54,12 +71,6 @@ void setup() {
   }
 
   server.begin();
-
-  if(!LittleFS.begin()){
-    Serial.println("An Error has occurred while mounting SPIFFS");
-  } else {
-    Serial.println("SPIFFS mounted succesfully!");
-  }
 }
 
 String request;
