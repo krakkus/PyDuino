@@ -12,16 +12,16 @@
   <button id="button-info" class="nav-button">Info</button>
   </p>
   <h2>Connectivity</h2>
-  <iframe src="dyn_cfg_wifi.html" height="400"></iframe>
+  <iframe src="/dyn_cfg_wifi.html" height="400"></iframe>
   <h2>Features</h2>
-    <form>
+    <form form action="/dyn_feature_add.html">
     <label for="type">Create a new feature:</label>
-    <select id="type" class="action-button">
+    <select id="type" class="action-button" name="type">
       <option value="digital_output">Digital output</option>
       <option value="digital_input">Digital input</option>
     </select>
 
-    <button type="button" class="action-button">Create</button>
+    <button type="submit" class="action-button">Create</button>
   </form>
   <br>
 

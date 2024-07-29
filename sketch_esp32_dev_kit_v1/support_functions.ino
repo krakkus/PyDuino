@@ -23,3 +23,15 @@ void respond(WiFiClient client, int status, String contentType, String content) 
   client.println();
   client.println(content);
 }
+
+String generateShortGuid() {
+  randomSeed(millis());
+  char guid[9]; // 8 characters + null terminator
+  guid[8] = '\0'; // Ensure null termination
+
+  for (int i = 0; i < 8; i++) {
+    guid[i] = 'a' + random(26); // Generate lowercase letter (a-z)
+  }
+  
+  return String(guid); // Convert character array to String for return
+}

@@ -1,6 +1,47 @@
 String getDynamicPage(WiFiClient client, String path, String parameters) {
   String content;
 
+  if (path == "/dyn_feature_add.html") {
+    content = R"(
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link rel="stylesheet" href="iframe.css">
+      </head>
+      <body>
+      Feature has been added!
+      <script>
+        setTimeout(function(){
+          window.location.href = "/index_setup.html";
+        }, 5000);
+      </script>
+      </body>
+      </html>
+      )";
+
+    String id = generateShortGuid();
+    String fname = "noname";
+    String type;
+
+    while (parameters.length() > 0) {
+      String kv = getStringBefore(parameters, '&');
+      parameters = getStringAfter(parameters, '&');
+
+      String k = getStringBefore(kv, '=');
+      String v = getStringAfter(kv, '=');
+
+      if (k == "type") type = v;
+    }
+
+    String feat = id + " " + fname + " " + type;
+
+    File file = LittleFS.open("/features.txt", "a");
+    file.println(feat);
+    file.close();
+
+    return content;
+  }
+
   if (path == "/dyn_cfg_wifi_save.html") {
     content = R"(
       <!DOCTYPE html>
@@ -11,6 +52,11 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       <body>
       WiFi credentials have been saved!
       </body>
+      <script>
+        setTimeout(function(){
+          window.location.href = "/dyn_cfg_wifi.html";
+        }, 5000);
+      </script>
       </html>
       )";
 
@@ -31,6 +77,8 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     File file = LittleFS.open("/credentials.txt", "w");
     file.println(cred);
     file.close();
+
+    return content;
   }
 
   if (path == "/dyn_cfg_wifi.html") {
@@ -62,6 +110,8 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     content.replace("$ID", id);
     content.replace("$SSID", ssid);
     content.replace("$PWD", password);
+
+    return content;
   }
 
 
@@ -75,32 +125,36 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     File file = LittleFS.open("/features.txt", "r");
     while (true) {
       String line = file.readStringUntil('\n');
-      if (line.length() == 0) {
-        file.close(); // Close the file when done
-        break; // Exit the loop
-      } else {
+      line.replace("\r", ""); // Remove carriage returns
+      line.replace("\n", ""); 
+
+      if (line.length() != 0) {
         String item = R"(
         {
           "id": "$ID",
+          "fname": "$FNAME",
           "type": "$TYPE"
         }, $ITEM)";
 
-        String id = getStringBefore(line, ' ');
-        line = getStringAfter(line, ' ');
+        String id = getStringBefore(line, ' ');        line = getStringAfter(line, ' ');
+        String fname = getStringBefore(line, ' ');     line = getStringAfter(line, ' ');
         String type = getStringBefore(line, ' ');
 
         item.replace("$ID", id);
+        item.replace("$FNAME", fname);
         item.replace("$TYPE", type);
 
         content.replace("$ITEM", item);
+      } else {
+        file.close();
+
+        content.replace(", $ITEM", "");
+        content.replace("$ITEM", "");
+
+        return content;
       }
     }
-    file.close();
-
-    content.replace("$ITEM", "");
-    content.replace(", $ITEM", "");
   }
 
-  // Return the final content
-  return content;
+  return "Dynamic page note here: " + path;
 }

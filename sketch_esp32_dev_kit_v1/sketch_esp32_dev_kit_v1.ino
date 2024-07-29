@@ -1,5 +1,4 @@
 #include <WiFi.h>
-//#include <SPIFFS.h>
 #include <LittleFS.h>
 
 String id = "";
@@ -34,13 +33,18 @@ void setup() {
 
     File file = LittleFS.open("/credentials.txt", "r");
     String line = file.readStringUntil('\n');
+    line.replace("\r", ""); // Remove carriage returns
+    line.replace("\n", "");
+
     file.close();
 
-    id = getStringBefore(line, ' ');
-    line = getStringAfter(line, ' ');
-    ssid = getStringBefore(line, ' ');
-    line = getStringAfter(line, ' ');
+    id = getStringBefore(line, ' ');        line = getStringAfter(line, ' ');
+    ssid = getStringBefore(line, ' ');      line = getStringAfter(line, ' ');
     password = getStringBefore(line, ' ');
+
+    if (id == "") id = "ESP32_DEV_KIT";
+    if (ssid == "") ssid = "YOUR_WIFI";
+    if (password == "") password = "password";
   }
 
   WiFi.mode(WIFI_STA); // Set mode to station (connect to an existing network)
