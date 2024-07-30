@@ -3,11 +3,11 @@ String getAPIPage(WiFiClient client, String path, String parameters) {
   String content;
 
   if (path == "/api_digital_output_high.html") {
-    String fid = getValueForKey(parameters, "id");
+    String fname = getValueForKey(parameters, "name");
 
-    String line = getFeatureLineFor(fid);
+    String line = getFeatureLineForName(fname);
     line = getStringAfter(line, ' ');
-    String fname = urlDecode(getStringBefore(line, ' '));
+    String x = urlDecode(getStringBefore(line, ' '));
     line = getStringAfter(line, ' ');
     // Type
     line = getStringAfter(line, ' ');
@@ -21,11 +21,11 @@ String getAPIPage(WiFiClient client, String path, String parameters) {
   }
 
   if (path == "/api_digital_output_low.html") {
-    String fid = getValueForKey(parameters, "id");
+    String fname = getValueForKey(parameters, "name");
 
-    String line = getFeatureLineFor(fid);
+    String line = getFeatureLineForName(fname);
     line = getStringAfter(line, ' ');
-    String fname = urlDecode(getStringBefore(line, ' '));
+    String x = urlDecode(getStringBefore(line, ' '));
     line = getStringAfter(line, ' ');
     // Type
     line = getStringAfter(line, ' ');

@@ -101,7 +101,7 @@ void processFile(const char* filePath, String searchString, String replacementSt
   output.close();
 }
 
-String getFeatureLineFor(String fid) {
+String getFeatureLineForID(String fid) {
   File file = LittleFS.open("/features.txt", "r");
   while (true) {
     String line = file.readStringUntil('\n');
@@ -109,8 +109,31 @@ String getFeatureLineFor(String fid) {
     line.replace("\n", "");
 
     if (line.length() != 0) {
-      String lid = getStringBefore(line, ' ');
-      if (lid == fid) {
+      String ffid = getStringBefore(line, ' ');
+      if (ffid == fid) {
+        file.close();
+        return line;
+      }
+    } else {
+      file.close();
+      return "";
+    }
+  }
+}
+
+String getFeatureLineForName(String fname) {
+  File file = LittleFS.open("/features.txt", "r");
+  while (true) {
+    String line = file.readStringUntil('\n');
+    line.replace("\r", ""); // Remove carriage returns
+    line.replace("\n", "");
+
+    if (line.length() != 0) {
+      String fid = getStringBefore(line, ' ');
+      String nline = getStringAfter(line, ' ');
+      String ffname = getStringBefore(nline, ' ');
+
+      if (ffname == fname) {
         file.close();
         return line;
       }

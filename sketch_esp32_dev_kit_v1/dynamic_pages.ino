@@ -21,7 +21,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
         const resultDiv = document.getElementById('result');
         
         button1.addEventListener('click', () => {
-          const url = "/api_digital_output_high.html?id=$FID";
+          const url = "/api_digital_output_high.html?name=$FNAME";
           
           fetch(url)
             .then(response => response.text())
@@ -34,7 +34,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
         });
         
         button2.addEventListener('click', () => {
-          const url = "/api_digital_output_low.html?id=$FID";
+          const url = "/api_digital_output_low.html?name=$FNAME";
           
           fetch(url)
             .then(response => response.text())
@@ -52,7 +52,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
 
     String fid = getValueForKey(parameters, "id");
 
-    String line = getFeatureLineFor(fid);
+    String line = getFeatureLineForID(fid);
     line = getStringAfter(line, ' ');
     String fname = urlDecode(getStringBefore(line, ' '));
     line = getStringAfter(line, ' ');
@@ -129,7 +129,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     String fpin;
     String fstate;
 
-    String line = getFeatureLineFor(fid);
+    String line = getFeatureLineForID(fid);
     line = getStringAfter(line, ' ');
     fname = urlDecode(getStringBefore(line, ' '));
     line = getStringAfter(line, ' ');
