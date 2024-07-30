@@ -1,5 +1,151 @@
+
 String getDynamicPage(WiFiClient client, String path, String parameters) {
   String content;
+
+  if (path == "/dyn_ctrl_digital_output.html") {
+    content = R"(
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link rel="stylesheet" href="iframe.css">
+      </head>
+      <body>
+        <h3>$FNAME</h3>
+        <button id="button-high" class="api-button">HIGH</button>
+        <button id="button-low" class="api-button">LOW</button>
+        <div id="result">no results yet..</div>
+      </body>
+      <script>
+        const button1 = document.getElementById('button-high');
+        const button2 = document.getElementById('button-low');
+        const resultDiv = document.getElementById('result');
+        
+        button1.addEventListener('click', () => {
+          const url = "/api_digital_output_high.html?id=$FID";
+          
+          fetch(url)
+            .then(response => response.text())
+            .then(data => {
+              resultDiv.textContent = data;
+            })
+            .catch(error => {
+              console.error('Error:', error);              
+            });
+        });
+        
+        button2.addEventListener('click', () => {
+          const url = "/api_digital_output_low.html?id=$FID";
+          
+          fetch(url)
+            .then(response => response.text())
+            .then(data => {
+              resultDiv.textContent = data;
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+        });
+        
+      </script>
+      </html>
+      )";
+
+    String fid = getValueForKey(parameters, "id");
+
+    String line = getFeatureLineFor(fid);
+    line = getStringAfter(line, ' ');
+    String fname = urlDecode(getStringBefore(line, ' '));
+    line = getStringAfter(line, ' ');
+    // Type
+    line = getStringAfter(line, ' ');
+    String fpin = urlDecode(getStringBefore(line, ' '));
+    line = getStringAfter(line, ' ');
+    String fstate = urlDecode(getStringBefore(line, ' '));
+
+    content.replace("$FID", fid);
+    content.replace("$FNAME", fname);
+    return content;
+  }
+
+  if (path == "/dyn_cfg_digital_output_save.html") {
+    content = R"(
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link rel="stylesheet" href="iframe.css">
+      </head>
+      <body>
+      Feature parameters have been saved!
+      </body>
+      <script>
+        setTimeout(function(){
+          window.location.href = "/dyn_cfg_digital_output.html?id=$FID";
+        }, 2500);
+      </script>
+      </html>
+      )";
+
+    String fid = getValueForKey(parameters, "id");
+    String fname = getValueForKey(parameters, "name");
+    String fpin = getValueForKey(parameters, "pin");
+    String fstate = getValueForKey(parameters, "state");
+
+    String feature = fid + " " + fname + " " + "digital_output" + " " + fpin + " " + fstate;
+
+    processFile("/features.txt", fid, feature);
+
+    content.replace("$FID", fid);
+
+    return content;
+  }
+
+  if (path == "/dyn_cfg_digital_output.html") {
+    content = R"(
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link rel="stylesheet" href="iframe.css">
+      </head>
+      <body>
+          <form action="/dyn_cfg_digital_output_save.html">
+              <h3>Digital output</h3>
+              <input type="hidden" id="id" name="id" value="$FID">
+              <label for="name">Name:</label>
+              <input type="text" id="name" name="name" value="$FNAME"><br><br>
+              <label for="pin">pin:</label>
+              <input type="text" id="pin" name="pin" value="$FPIN"><br><br> 
+              <label for="state">state:</label>             
+              <input type="text" id="state" name="state" value="$FSTATE"><br><br>
+              <input type="submit" value="Save" class="action-button">
+          </form>
+        <br>
+      </body>
+      
+      </html>
+      )";
+
+    String fid = getValueForKey(parameters, "id");
+    String fname;
+    String fpin;
+    String fstate;
+
+    String line = getFeatureLineFor(fid);
+    line = getStringAfter(line, ' ');
+    fname = urlDecode(getStringBefore(line, ' '));
+    line = getStringAfter(line, ' ');
+    // Type
+    line = getStringAfter(line, ' ');
+    fpin = urlDecode(getStringBefore(line, ' '));
+    line = getStringAfter(line, ' ');
+    fstate = urlDecode(getStringBefore(line, ' '));
+
+    content.replace("$FID", fid);
+    content.replace("$FNAME", fname);
+    content.replace("$FPIN", fpin);
+    content.replace("$FSTATE", fstate);
+
+    return content;
+  }
 
   if (path == "/dyn_feature_add.html") {
     content = R"(
@@ -76,7 +222,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
           <form action="/dyn_cfg_wifi_save.html">
               <h3>Devicename</h3>
               <label for="name">Name:</label>
-              <input type="text" id="name" name="name" value="$ID"><br><br>
+              <input type="text" id="name" name="name" value="$FID"><br><br>
               <br>
               <h3>WiFi credentials</h3>
               <label for="ssid">SSID:</label>
@@ -98,7 +244,6 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     return content;
   }
 
-
   if (path == "/dyn_get_features.json") {
     String content = R"(
       [
@@ -110,21 +255,21 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     while (true) {
       String line = file.readStringUntil('\n');
       line.replace("\r", ""); // Remove carriage returns
-      line.replace("\n", ""); 
+      line.replace("\n", "");
 
       if (line.length() != 0) {
         String item = R"(
         {
-          "id": "$ID",
+          "id": "$FID",
           "fname": "$FNAME",
           "type": "$TYPE"
         }, $ITEM)";
 
-        String id = getStringBefore(line, ' ');        line = getStringAfter(line, ' ');
+        String fid = getStringBefore(line, ' ');       line = getStringAfter(line, ' ');
         String fname = getStringBefore(line, ' ');     line = getStringAfter(line, ' ');
         String type = getStringBefore(line, ' ');
 
-        item.replace("$ID", id);
+        item.replace("$FID", fid);
         item.replace("$FNAME", fname);
         item.replace("$TYPE", type);
 
@@ -140,5 +285,5 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     }
   }
 
-  return "Dynamic page note here: " + path;
+  return "Dynamic page not here: " + path;
 }

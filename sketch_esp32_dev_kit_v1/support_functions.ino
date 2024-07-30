@@ -37,17 +37,18 @@ String generateShortGuid() {
 }
 
 String getValueForKey(String parameters, String key) {
-    while (parameters.length() > 0) {
-      String kv = getStringBefore(parameters, '&');
-      parameters = getStringAfter(parameters, '&');
+  while (parameters.length() > 0) {
+    String kv = getStringBefore(parameters, '&');
+    parameters = getStringAfter(parameters, '&');
 
-      String k = getStringBefore(kv, '=');
-      String v = getStringAfter(kv, '=');
+    String k = getStringBefore(kv, '=');
+    String v = getStringAfter(kv, '=');
 
-      if (k == key) return v;
-    }
+    if (k == key) return v;
+  }
 
-    return "";
+  return "";
+}
 
 String urlDecode(const String& input) {
   String output;
@@ -66,4 +67,56 @@ String urlDecode(const String& input) {
     }
   }
   return output;
+}
+
+void processFile(const char* filePath, String searchString, String replacementString) {
+  File input = LittleFS.open(filePath, "r");
+  if (!input) {
+    Serial.println("Error opening file for reading");
+    return;
+  }
+
+  String newContent; // Use a String to store the modified content
+
+  String line;
+  while (input.available()) {
+    line = input.readStringUntil('\n');
+    // Process line and append to newContent
+    if (line.startsWith(searchString)) {
+      newContent += replacementString + "\n";
+    } else {
+      newContent += line + "\n";
+    }
+  }
+
+  input.close();
+
+  File output = LittleFS.open(filePath, "w");
+  if (!output) {
+    Serial.println("Error opening file for writing");
+    return;
+  }
+
+  output.print(newContent);
+  output.close();
+}
+
+String getFeatureLineFor(String fid) {
+  File file = LittleFS.open("/features.txt", "r");
+  while (true) {
+    String line = file.readStringUntil('\n');
+    line.replace("\r", ""); // Remove carriage returns
+    line.replace("\n", "");
+
+    if (line.length() != 0) {
+      String lid = getStringBefore(line, ' ');
+      if (lid == fid) {
+        file.close();
+        return line;
+      }
+    } else {
+      file.close();
+      return "";
+    }
+  }
 }

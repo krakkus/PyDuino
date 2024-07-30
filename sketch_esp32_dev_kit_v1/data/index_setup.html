@@ -50,7 +50,7 @@
     function createIframe(feature) {
       const iframe = document.createElement('iframe');
       iframe.id = `iframe-${feature.id}`;
-      //iframe.src = baseUrl + feature.id;
+      iframe.src = "/dyn_cfg_" + feature.type + ".html?id=" + feature.id;
       iframe.style.height = typeHeights[feature.type] + 'px'; // Adjust height based on type
       iframe.style.width = '100%'; // Or set a specific width
       document.getElementById('iframe-container').appendChild(iframe);

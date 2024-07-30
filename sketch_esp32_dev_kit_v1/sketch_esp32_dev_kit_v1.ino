@@ -41,9 +41,9 @@ void setup() {
 
   file.close();
 
-  id = getStringBefore(line, ' ');        line = getStringAfter(line, ' ');
-  ssid = getStringBefore(line, ' ');      line = getStringAfter(line, ' ');
-  password = getStringBefore(line, ' ');
+  id = urlDecode(getStringBefore(line, ' '));        line = getStringAfter(line, ' ');
+  ssid = urlDecode(getStringBefore(line, ' '));      line = getStringAfter(line, ' ');
+  password = urlDecode(getStringBefore(line, ' '));
 
   if (id == "") id = "ESP32_DEV_KIT";
   if (ssid == "") ssid = "YOUR_WIFI";
@@ -153,6 +153,8 @@ void servePage(WiFiClient client, String url) {
   }
 
   if (prefix == "api") {
+    String content = getAPIPage(client, path, parameters);
+    respond(client, 200, ctt, content);
     return;
   }
 

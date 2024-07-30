@@ -36,3 +36,18 @@ h3 {
   cursor: pointer;
   border-radius: 5px;
 }
+
+.api-button {
+  background-color: #555555;
+  border: none;
+  color: white;
+  padding: 15px 30px;
+  text-align: center;
+  text-decoration: bold;
+  display: inline-block;
+  font-size: 28px;
+
+  margin: 2px;
+  cursor: pointer;
+  border-radius: 15px;
+}

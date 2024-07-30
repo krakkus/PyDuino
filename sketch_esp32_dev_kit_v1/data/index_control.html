@@ -13,6 +13,42 @@
   </p>
   <h2>Control your device</h2>
 
+  <div id="iframe-container"></div>
+
+  <script>
+    const typeHeights = {
+      digital_output: 150,
+      digital_input: 150,
+    };
+
+    function fetchFeatureList() {
+      fetch("/dyn_get_features.json") // Assuming the endpoint is '/features'
+        .then(response => response.json())
+        .then(data => {
+          // Handle the fetched feature data here
+          //console.log(data); // For debugging
+          data.forEach(createIframe);
+        })
+        .catch(error => {
+          console.error('Error fetching feature list:', error);
+          // Handle errors, e.g., display an error message
+        });
+    }
+
+    function createIframe(feature) {
+      const iframe = document.createElement('iframe');
+      iframe.id = `iframe-${feature.id}`;
+      iframe.src = "/dyn_ctrl_" + feature.type + ".html?id=" + feature.id;
+      iframe.style.height = typeHeights[feature.type] + 'px'; // Adjust height based on type
+      iframe.style.width = '100%'; // Or set a specific width
+      document.getElementById('iframe-container').appendChild(iframe);
+    }
+
+    // Iterate through the feature list and create iframes
+    fetchFeatureList();
+
+  </script>
+
   <script>
     const button1 = document.getElementById('button-setup');
     const button2 = document.getElementById('button-control');
