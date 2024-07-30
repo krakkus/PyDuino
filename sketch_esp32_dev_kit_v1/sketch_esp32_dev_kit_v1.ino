@@ -25,35 +25,45 @@ WiFiServer server(80);
 
 void setup() {
   Serial.begin(115200);
+  delay(2000);
 
   if (!LittleFS.begin()) {
     Serial.println("An Error has occurred while mounting SPIFFS");
+    exit(1);
   } else {
     Serial.println("LittleFS mounted succesfully!");
-
-    File file = LittleFS.open("/credentials.txt", "r");
-    String line = file.readStringUntil('\n');
-    line.replace("\r", ""); // Remove carriage returns
-    line.replace("\n", "");
-
-    file.close();
-
-    id = getStringBefore(line, ' ');        line = getStringAfter(line, ' ');
-    ssid = getStringBefore(line, ' ');      line = getStringAfter(line, ' ');
-    password = getStringBefore(line, ' ');
-
-    if (id == "") id = "ESP32_DEV_KIT";
-    if (ssid == "") ssid = "YOUR_WIFI";
-    if (password == "") password = "password";
   }
+
+  File file = LittleFS.open("/credentials.txt", "r");
+  String line = file.readStringUntil('\n');
+  line.replace("\r", ""); // Remove carriage returns
+  line.replace("\n", "");
+
+  file.close();
+
+  id = getStringBefore(line, ' ');        line = getStringAfter(line, ' ');
+  ssid = getStringBefore(line, ' ');      line = getStringAfter(line, ' ');
+  password = getStringBefore(line, ' ');
+
+  if (id == "") id = "ESP32_DEV_KIT";
+  if (ssid == "") ssid = "YOUR_WIFI";
+  if (password == "") password = "password";
+
+  Serial.print("WiFi SSID: ");
+  Serial.println(ssid);
+  Serial.print("WiFi password: ");
+  Serial.println(password);
 
   WiFi.mode(WIFI_STA); // Set mode to station (connect to an existing network)
   WiFi.begin(ssid, password);
 
+  int timeout = 10;
   Serial.print("Connecting to WiFi");
   while (WiFi.status() == WL_DISCONNECTED || WiFi.status() == WL_IDLE_STATUS) {
-    delay(100);
+    delay(1000);
     Serial.print(".");
+    timeout -= 1;
+    if (timeout == 0) break;
   }
   Serial.println();
   Serial.println("WiFi Status code: " + wl_status_to_string(WiFi.status()));
@@ -65,11 +75,16 @@ void setup() {
   }
   else
   {
-    Serial.println("Could not connect to network, SSID: " + String(ssid));
+    Serial.println("Could not connect to network");
     Serial.println("setting up access point");
+    Serial.print("Access point SSID: ");
+    Serial.println(ap_ssid);
+    Serial.print("Access point password: ");
+    Serial.println(ap_password);
+
     WiFi.mode(WIFI_AP); // Set mode to access point
     WiFi.softAP(ap_ssid, ap_password);
-    Serial.println("Access point started, SSID: " + String(ap_ssid));
+    Serial.println("Access point started");
     Serial.print("Access point IP Address: ");
     Serial.println(WiFi.softAPIP());
   }

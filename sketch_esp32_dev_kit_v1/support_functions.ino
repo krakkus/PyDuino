@@ -48,4 +48,22 @@ String getValueForKey(String parameters, String key) {
     }
 
     return "";
+
+String urlDecode(const String& input) {
+  String output;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (input[i] == '%') {
+      if (i + 2 < input.length()) {
+        char hexChar[3] = {input[i + 1], input[i + 2], '\0'};
+        char decodedChar = (char)strtol(hexChar, NULL, 16);
+        output += decodedChar;
+        i += 2;
+      }
+    } else if (input[i] == '+') {
+      output += ' ';
+    } else {
+      output += input[i];
+    }
+  }
+  return output;
 }

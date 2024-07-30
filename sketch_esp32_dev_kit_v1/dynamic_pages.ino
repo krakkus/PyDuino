@@ -13,7 +13,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       <script>
         setTimeout(function(){
           window.location.href = "/index_setup.html";
-        }, 5000);
+        }, 2500);
       </script>
       </body>
       </html>
@@ -47,7 +47,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       <script>
         setTimeout(function(){
           window.location.href = "/dyn_cfg_wifi.html";
-        }, 5000);
+        }, 2500);
       </script>
       </html>
       )";
