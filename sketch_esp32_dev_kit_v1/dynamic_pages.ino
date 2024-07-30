@@ -23,15 +23,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
     String fname = "noname";
     String type;
 
-    while (parameters.length() > 0) {
-      String kv = getStringBefore(parameters, '&');
-      parameters = getStringAfter(parameters, '&');
-
-      String k = getStringBefore(kv, '=');
-      String v = getStringAfter(kv, '=');
-
-      if (k == "type") type = v;
-    }
+    type = getValueForKey(parameters, "type");
 
     String feat = id + " " + fname + " " + type;
 
@@ -60,17 +52,9 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
       </html>
       )";
 
-    while (parameters.length() > 0) {
-      String kv = getStringBefore(parameters, '&');
-      parameters = getStringAfter(parameters, '&');
-
-      String k = getStringBefore(kv, '=');
-      String v = getStringAfter(kv, '=');
-
-      if (k == "name") id = v;
-      if (k == "ssid") ssid = v;
-      if (k == "password") password = v;
-    }
+    id = getValueForKey(parameters, "name");
+    ssid = getValueForKey(parameters, "ssid");
+    password = getValueForKey(parameters, "password");
 
     String cred = id + " " + ssid + " " + password;
 

@@ -32,6 +32,20 @@ String generateShortGuid() {
   for (int i = 0; i < 8; i++) {
     guid[i] = 'a' + random(26); // Generate lowercase letter (a-z)
   }
-  
+
   return String(guid); // Convert character array to String for return
+}
+
+String getValueForKey(String parameters, String key) {
+    while (parameters.length() > 0) {
+      String kv = getStringBefore(parameters, '&');
+      parameters = getStringAfter(parameters, '&');
+
+      String k = getStringBefore(kv, '=');
+      String v = getStringAfter(kv, '=');
+
+      if (k == key) return v;
+    }
+
+    return "";
 }
