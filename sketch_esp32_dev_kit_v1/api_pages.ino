@@ -2,6 +2,11 @@
 String getAPIPage(WiFiClient client, String path, String parameters) {
   String content;
 
+  if (path == "/api_discover.html") {
+    content = "OK," + id;
+    return content;
+  }
+  
   if (path == "/api_digital_output_high.html") {
     String fname = getValueForKey(parameters, "name");
 

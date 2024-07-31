@@ -222,7 +222,7 @@ String getDynamicPage(WiFiClient client, String path, String parameters) {
           <form action="/dyn_cfg_wifi_save.html">
               <h3>Devicename</h3>
               <label for="name">Name:</label>
-              <input type="text" id="name" name="name" value="$FID"><br><br>
+              <input type="text" id="name" name="name" value="$ID"><br><br>
               <br>
               <h3>WiFi credentials</h3>
               <label for="ssid">SSID:</label>
